@@ -1,3 +1,6 @@
+#define RANDOM_SCENE
+#define SHOW_PROGRESS
+
 #include "camera.h"
 #include "dielectric.h"
 #include "lambertian.h"
@@ -9,10 +12,16 @@
 #include "vec.h"
 #include "world.h"
 
+#include <ctpl_stl.h>
+
+#include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <random>
 #include <vector>
 
@@ -83,11 +92,93 @@ world random_scene()
     return scene;
 }
 
+struct image
+{
+    int width;
+    int height;
+    int samples;
+};
+
+void render(const image& img, const world& w, const camera& cam, int start, int end, unsigned char* p)
+{
+    for (int i = start; i >= end; --i) {
+        for (int j = 0; j < img.width; ++j) {
+            vec3 c = vec3::zero;
+            for (int n = 0; n < img.samples; ++n) {
+                float u = (float)(j + random_unit()) / img.width;
+                float v = (float)(i + random_unit()) / img.height;
+                ray r = cam.get_ray(u, v);
+                c += color(r, w);
+            }
+            c /= (float)img.samples;
+            
+            // gamma correction
+            int ir = (int)(sqrtf(c[0]) * 255.99f);
+            int ig = (int)(sqrtf(c[1]) * 255.99f);
+            int ib = (int)(sqrtf(c[2]) * 255.99f);
+            
+            *p++ = (unsigned char)ir;
+            *p++ = (unsigned char)ig;
+            *p++ = (unsigned char)ib;
+        }
+    }
+}
+
+void render(const image& img, const world& w, const camera& cam)
+{
+    int num_threads = 2;
+    ctpl::thread_pool pool(num_threads);
+    std::vector<unsigned char> buf(img.width * img.height * 3);
+    
+#ifdef SHOW_PROGRESS
+    mutex mtx;
+    condition_variable cv;
+    int counter = 0;
+#endif
+    
+    const int rows = min(img.height / 2, 2);
+    for (int i = img.height - 1; i >= 0; ) {
+        int start = i;
+        int end = max(i - rows + 1, 0);
+        pool.push([&, start, end](auto) {
+            render(img, w, cam, start, end, &buf[(img.height - 1 - start) * img.width * 3]);
+            
+#ifdef SHOW_PROGRESS
+            {
+                unique_lock<mutex> lock(mtx);
+                counter += start - end + 1;
+                cv.notify_one();
+            }
+#endif
+        });
+        i = --end;
+    }
+    
+#ifdef SHOW_PROGRESS
+    {
+        unique_lock<mutex> lock(mtx);
+        while (counter < img.height) {
+            cout << "progress " << (int)((float)counter / img.height * 100) << "\n";
+            cv.wait(lock);
+        }
+    }
+    cout << "done\n";
+#endif
+    
+    pool.stop(true);
+    ofstream out("output.ppm");
+    out << "P3\n" << img.width << " " << img.height << "\n255\n";
+    for (auto c : buf) {
+        out << (int)c << "\n";
+    }
+}
+
 int main(int argc, char* argv[])
 {
-    int width = 300;
-    int height = 150;
-    int samples = 100;
+    image img;
+    img.width = 300;
+    img.height = 150;
+    img.samples = 100;
     if (argc > 1)
     {
         if (argc < 4)
@@ -96,9 +187,9 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        width = atoi(argv[1]);
-        height = atoi(argv[2]);
-        samples = atoi(argv[3]);
+        img.width   = atoi(argv[1]);
+        img.height  = atoi(argv[2]);
+        img.samples = atoi(argv[3]);
     }
 
     vec3 pos, lookat;
@@ -124,31 +215,11 @@ int main(int argc, char* argv[])
     dist_to_focus = 10.0f;
 #endif
 
-    camera cam(pos, lookat, vec3::up, 20.0f, (float)width / height, aperture, dist_to_focus);
-
-    ofstream out("output.ppm");
-    out << "P3\n" << width << " " << height << "\n255\n";
-    for (int i = height - 1; i >= 0; --i) {
-        for (int j = 0; j < width; ++j) {
-            vec3 c = vec3::zero;
-            for (int n = 0; n < samples; ++n) {
-                float u = (float)(j + random_unit()) / width;
-                float v = (float)(i + random_unit()) / height;
-                ray r = cam.get_ray(u, v);
-                c += color(r, w);
-            }
-            c /= (float)samples;
-#ifdef GAMMA
-            int ir = (int)(sqrtf(c[0]) * 255.99f);
-            int ig = (int)(sqrtf(c[1]) * 255.99f);
-            int ib = (int)(sqrtf(c[2]) * 255.99f);
-#else
-            int ir = (int)(c[0] * 255.99f);
-            int ig = (int)(c[1] * 255.99f);
-            int ib = (int)(c[2] * 255.99f);
-#endif
-
-            out << ir << " " << ig << " " << ib << "\n";
-        }
-    }
+    camera cam(pos, lookat, vec3::up, 20.0f, (float)img.width / img.height, aperture, dist_to_focus);
+    
+    using namespace chrono;
+    auto start = high_resolution_clock::now();
+    render(img, w, cam);
+    auto end = high_resolution_clock::now();
+    cout << "duration: " << duration_cast<milliseconds>(end - start).count() << "\n";
 }

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.7)
 
 project(tracer)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
 add_subdirectory(kismet)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -29,7 +31,8 @@ add_executable(tracer
     ${HEADERS}
 )
 
-target_include_directories(tracer PRIVATE kismet/include)
+target_include_directories(tracer
+    PRIVATE kismet/include ctpl)
 target_link_libraries(tracer PRIVATE math)
 target_compile_features(tracer PRIVATE cxx_std_14)
 
