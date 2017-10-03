@@ -2,3 +2,4 @@
 .cs_workspaces
 .ycm_extra_conf.py
 build/
+lib/
