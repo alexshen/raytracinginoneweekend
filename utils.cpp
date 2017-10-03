@@ -5,7 +5,7 @@ using namespace std;
 vec3 random_in_unit_sphere()
 {
     static uniform_real_distribution<float> s_dist;
-    static minstd_rand0 s_gen;
+    static ranlux24_base s_gen;
 
     vec3 d;
     do {
@@ -18,7 +18,7 @@ vec3 random_in_unit_sphere()
 vec2 random_in_unit_disk()
 {
     static uniform_real_distribution<float> s_dist;
-    static minstd_rand0 s_gen;
+    static ranlux24_base s_gen;
 
     vec2 d;
     do {
@@ -31,6 +31,6 @@ vec2 random_in_unit_disk()
 float random_unit()
 {
     static uniform_real_distribution<float> s_dist;
-    static minstd_rand0 s_gen;
+    static ranlux24_base s_gen;
     return s_dist(s_gen);
 }

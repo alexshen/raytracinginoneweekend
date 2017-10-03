@@ -10,6 +10,7 @@
 #include "world.h"
 
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -33,7 +34,7 @@ vec3 color(const ray& r, const hitable& world, int depth = 0)
     }
 
     auto dir = normalize(r.dir);
-    float t = 0.5 * (dir.y() + 1.0f);
+    float t = 0.5f * (dir.y() + 1.0f);
     return lerp(vec3(1.0f, 1.0f, 1.0f), vec3(0.5f, 0.7f, 1.0f), t);
 }
 
@@ -82,11 +83,23 @@ world random_scene()
     return scene;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    constexpr int width = 300;
-    constexpr int height = 150;
-    constexpr int samples = 100;
+    int width = 300;
+    int height = 150;
+    int samples = 100;
+    if (argc > 1)
+    {
+        if (argc < 4)
+        {
+            cerr << "tracer width height samples\n";
+            return 1;
+        }
+
+        width = atoi(argv[1]);
+        height = atoi(argv[2]);
+        samples = atoi(argv[3]);
+    }
 
     vec3 pos, lookat;
     float aperture, dist_to_focus;
@@ -113,7 +126,8 @@ int main()
 
     camera cam(pos, lookat, vec3::up, 20.0f, (float)width / height, aperture, dist_to_focus);
 
-    cout << "P3\n" << width << " " << height << "\n255\n";
+    ofstream out("output.ppm");
+    out << "P3\n" << width << " " << height << "\n255\n";
     for (int i = height - 1; i >= 0; --i) {
         for (int j = 0; j < width; ++j) {
             vec3 c = vec3::zero;
@@ -123,7 +137,7 @@ int main()
                 ray r = cam.get_ray(u, v);
                 c += color(r, w);
             }
-            c /= samples;
+            c /= (float)samples;
 #ifdef GAMMA
             int ir = (int)(sqrt(c[0]) * 255.99f);
             int ig = (int)(sqrt(c[1]) * 255.99f);
@@ -134,7 +148,7 @@ int main()
             int ib = (int)(c[2] * 255.99f);
 #endif
 
-            cout << ir << " " << ig << " " << ib << "\n";
+            out << ir << " " << ig << " " << ib << "\n";
         }
     }
 }
