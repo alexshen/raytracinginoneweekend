@@ -11,7 +11,7 @@ bool refract(const vec3& r_in, const vec3& n, float ni_over_nt, vec3& refracted)
     float dt = dot(r_in, n);
     float determinant = 1.0f - ni_over_nt * ni_over_nt * (1.0f - dt * dt);
     if (determinant > 0) {
-        refracted = ni_over_nt * r_in - (ni_over_nt * dt + sqrt(determinant)) * n;
+        refracted = ni_over_nt * r_in - (ni_over_nt * dt + sqrtf(determinant)) * n;
         return true;
     }
     return false;

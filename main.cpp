@@ -139,9 +139,9 @@ int main(int argc, char* argv[])
             }
             c /= (float)samples;
 #ifdef GAMMA
-            int ir = (int)(sqrt(c[0]) * 255.99f);
-            int ig = (int)(sqrt(c[1]) * 255.99f);
-            int ib = (int)(sqrt(c[2]) * 255.99f);
+            int ir = (int)(sqrtf(c[0]) * 255.99f);
+            int ig = (int)(sqrtf(c[1]) * 255.99f);
+            int ib = (int)(sqrtf(c[2]) * 255.99f);
 #else
             int ir = (int)(c[0] * 255.99f);
             int ig = (int)(c[1] * 255.99f);

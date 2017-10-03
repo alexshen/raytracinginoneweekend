@@ -13,6 +13,9 @@ if (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
+file(GLOB HEADERS *.h)
+source_group("Headers" FILES ${HEADERS})
+
 add_executable(tracer
     camera.cpp
     dielectric.cpp
@@ -23,6 +26,7 @@ add_executable(tracer
     utils.cpp
     vec.cpp
     world.cpp
+    ${HEADERS}
 )
 
 target_include_directories(tracer PRIVATE kismet/include)

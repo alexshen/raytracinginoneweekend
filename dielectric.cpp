@@ -36,7 +36,7 @@ bool dielectric::scatter(const ray& r_in, const hit_record& rec, vec3& attenuati
     if (refract(uin, normal, ni_over_nt, refracted)) {
         // if > 0, then we assume that light travels from denser material to air
         if (cosine > 0) {
-            cosine = sqrt(1.0f - index * index * (1.0f - cosine * cosine));
+            cosine = sqrtf(1.0f - index * index * (1.0f - cosine * cosine));
         } else {
             cosine = -cosine;
         }
