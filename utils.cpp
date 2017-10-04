@@ -1,4 +1,5 @@
 #define FAST_RAND
+//#define DRAND48
 
 #include "utils.h"
 #ifndef FAST_RAND
@@ -44,10 +45,14 @@ float random_unit()
 
 float fast_rand()
 {
+#ifdef DRAND48
+    return (float)drand48();
+#else
     // see https://software.intel.com/en-us/articles/fast-random-number-generator-on-the-intel-pentiumr-4-processor/
     constexpr unsigned int rand_max = 0x8000;
     static thread_local unsigned int s_seed;
     s_seed = 214013u * s_seed + 2531011u;
     auto r = (s_seed >> 16) & (rand_max - 1);
     return (float)r / rand_max;
+#endif
 }

@@ -168,8 +168,8 @@ void render(const image& img, const world& w, const camera& cam)
     pool.stop(true);
     ofstream out("output.ppm");
     out << "P3\n" << img.width << " " << img.height << "\n255\n";
-    for (auto c : buf) {
-        out << (int)c << "\n";
+    for (auto i = 0u; i < buf.size(); i += 3) {
+        out << (int)buf[i] << " " << (int)buf[i + 1] << " " << (int)buf[i + 2] << "\n";
     }
 }
 
@@ -206,6 +206,10 @@ int main(int argc, char* argv[])
     lookat = vec3(0, 0, -1);
     aperture = 2.0f;
     dist_to_focus = (lookat - pos).mag();
+    pos = vec3(0, 10, 10);
+    lookat = vec3::zero;
+    aperture = 0;
+    dist_to_focus = 1;
 #else
     w = random_scene();
 

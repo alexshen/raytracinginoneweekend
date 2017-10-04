@@ -17,13 +17,15 @@ bool sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
 
     float discriminant = b * b - a * c;
     if (discriminant > 0) {
-        float t = (-b - sqrtf(discriminant)) / a;
+        float dis2 = sqrtf(discriminant);
+        float inv_a = 1.0f / a;
+        float t = (-b - dis2) * inv_a;
         if (tmin < t && t < tmax) {
             rec = compute_hit(r, t);
             return true;
         }
 
-        t = (-b + sqrtf(discriminant)) / a;
+        t = (-b + dis2) * inv_a;
         if (tmin < t && t < tmax) {
             rec = compute_hit(r, t);
             return true;
