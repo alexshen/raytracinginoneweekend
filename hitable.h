@@ -2,9 +2,8 @@
 #define HITABLE_H
 
 #include "vec.h"
+#include "ray.h"
 #include "material.h"
-
-class ray;
 
 struct hit_record
 {
@@ -23,7 +22,7 @@ public:
         : mat(std::move(mat))
     {}
 
-    virtual ~hitable() {}
+    virtual ~hitable() = default;
     virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const = 0;
 
     material_ptr mat;

@@ -15,26 +15,26 @@ if (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_SCL_SECURE_NO_WARNINGS")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif()
+
 file(GLOB HEADERS *.h)
 source_group("Headers" FILES ${HEADERS})
 
+file(GLOB SOURCES *.cpp)
+
 add_executable(tracer
-    camera.cpp
-    dielectric.cpp
-    lambertian.cpp
-    main.cpp
-    metal.cpp
-    sphere.cpp
-    utils.cpp
-    vec.cpp
-    world.cpp
+    ${SOURCES}
     ${HEADERS}
 )
 
 target_include_directories(tracer
     PRIVATE kismet/include ctpl)
 target_link_libraries(tracer PRIVATE math)
-target_compile_features(tracer PRIVATE cxx_std_14)
+target_compile_features(tracer PRIVATE cxx_std_17)
 
 option(GAMMA "encode ppm with gamma correction" ON)
 if (GAMMA)

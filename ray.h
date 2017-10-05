@@ -3,23 +3,27 @@
 
 #include "vec.h"
 
-class ray
+template<typename T>
+class basic_ray
 {
 public:
-    ray() = default;
-    ray(const vec3& origin, const vec3& dir)
+    basic_ray() = default;
+    basic_ray(const T& origin, const T& dir)
         : origin(origin)
         , dir(dir)
     {
     }
 
-    vec3 point_at(float t) const
+    T point_at(float t) const
     {
         return origin + dir * t;
     }
 
-    vec3 origin;
-    vec3 dir;
+    T origin;
+    T dir;
 };
+
+using ray = basic_ray<vec3>;
+using ray2 = basic_ray<vec2>;
 
 #endif // RAY_H

@@ -2,17 +2,17 @@
 #define MATERIAL_H
 
 #include "vec.h"
+#include "ray.h"
 
 #include <memory>
 #include <utility>
 
-class ray;
 struct hit_record;
 
 class material
 {
 public:
-    virtual ~material() {}
+    virtual ~material() = default;
     virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation,
                          ray& scattered) const = 0;
 };
