@@ -42,8 +42,8 @@ bool check_hit(const object_list& objects, const ray& r, float tmin, float tmax,
     bool hit = false;
     rec.t = tmax;
     hit_record tmp;
-    for (int i = 0; i < objects.size(); ++i) {
-        auto& obj = static_cast<hitable_object&>(*objects[i]);
+    for (auto o : objects) {
+        auto& obj = static_cast<hitable_object&>(*o);
         if (obj.get_object().hit(r, tmin, rec.t, tmp)) {
             rec = tmp;
             hit = true;
@@ -52,7 +52,7 @@ bool check_hit(const object_list& objects, const ray& r, float tmin, float tmax,
     return hit;
 }
 
-vec3 color(const ray& r, uint8_t& frame, scene_manager& scene, object_list& hitables, int depth = 0)
+vec3 color(const ray& r, scene_manager& scene, object_list& hitables, int depth = 0)
 {
     hitables.clear();
     
@@ -67,7 +67,7 @@ vec3 color(const ray& r, uint8_t& frame, scene_manager& scene, object_list& hita
         vec3 attenuation;
         ray scattered;
         if (depth < 50 && rec.mat->scatter(r, rec, attenuation, scattered)) {
-            return attenuation * color(scattered, frame, scene, hitables, depth + 1);
+            return attenuation * color(scattered, scene, hitables, depth + 1);
         } else {
             return vec3::zero;
         }
@@ -156,9 +156,6 @@ struct image
 void render(scene_manager& scene, const camera& cam, object_list& hitables,
             const image& img, int start, int end, unsigned char* p)
 {
-    // start from 1, frame 0 is invalid
-    uint8_t frame = 1;
-    
     for (int i = start; i >= end; --i) {
         for (int j = 0; j < img.width; ++j) {
             vec3 c = vec3::zero;
@@ -166,7 +163,7 @@ void render(scene_manager& scene, const camera& cam, object_list& hitables,
                 float u = (float)(j + random_unit()) / img.width;
                 float v = (float)(i + random_unit()) / img.height;
                 ray r = cam.get_ray(u, v);
-                c += color(r, frame, scene, hitables);
+                c += color(r, scene, hitables);
             }
             c /= (float)img.samples;
             
