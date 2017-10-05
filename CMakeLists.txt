@@ -35,14 +35,3 @@ target_include_directories(tracer
     PRIVATE kismet/include ctpl)
 target_link_libraries(tracer PRIVATE math)
 target_compile_features(tracer PRIVATE cxx_std_17)
-
-option(GAMMA "encode ppm with gamma correction" ON)
-if (GAMMA)
-    target_compile_definitions(tracer PRIVATE GAMMA)
-endif()
-
-option(RANDOM_SCENE "random scene" ON)
-if (RANDOM_SCENE)
-    target_compile_definitions(tracer PRIVATE RANDOM_SCENE)
-endif()
-
