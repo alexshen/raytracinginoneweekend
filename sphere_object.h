@@ -16,7 +16,8 @@ public:
     aabb get_aabb() const override
     {
         const auto& obj = static_cast<const sphere&>(get_object());
-        return aabb{vec2(obj.center.x(), obj.center.z()), obj.radius};
+        return aabb{ vec2(obj.center.x() - obj.radius, obj.center.z() - obj.radius),
+                    vec2(obj.center.x() + obj.radius, obj.center.z() + obj.radius) };
     }
 };
 

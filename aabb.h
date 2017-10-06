@@ -5,13 +5,23 @@
 
 struct aabb
 {
-    vec2 center;
-    float half_width;
+    vec2 center() const { return (min + max) * 0.5f; }
+    vec2 extent() const { return (max - min) * 0.5f; }
 
-    vec2 min() const { return vec2(center.x() - half_width, center.y() - half_width); }
-    vec2 max() const { return vec2(center.x() + half_width, center.y() + half_width); }
-    
-    bool overlap(const aabb& rhs) const;
+    bool overlap(const aabb& rhs) const
+    {
+        return overlap(rhs, 0) && overlap(rhs, 1);
+    }
+
+    bool overlap(const aabb& rhs, int axis) const
+    {
+        float s = std::max(min[axis], rhs.min[axis]);
+        float e = std::min(max[axis], rhs.max[axis]);
+        return s < e;
+    }
+
+    vec2 min;
+    vec2 max;
 };
 
 #endif /* AABB_H */

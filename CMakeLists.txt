@@ -11,7 +11,7 @@ if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "set build type to Release")
 endif()
 
-if (CMAKE_BUILD_TYPE STREQUAL Release)
+if (CMAKE_BUILD_TYPE STREQUAL Release AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 

@@ -7,25 +7,17 @@
 
 void expand(aabb& volume, const sphere& s)
 {
-    auto min = volume.min();
-    auto max = volume.max();
+    volume.min.x() = std::min(volume.min.x(), s.center.x() - s.radius);
+    volume.max.x() = std::max(volume.max.x(), s.center.x() + s.radius);
 
-    min.x() = std::min(min.x(), s.center.x() - s.radius);
-    max.x() = std::max(max.x(), s.center.x() + s.radius);
-
-    min.y() = std::min(min.y(), s.center.z() - s.radius);
-    max.y() = std::max(max.y(), s.center.z() + s.radius);
-
-    volume.center = (min + max) * 0.5f;
-
-    auto size = max - min;
-    volume.half_width = std::max(size[0], size[1]) * 0.5f;
+    volume.min.y() = std::min(volume.min.y(), s.center.z() - s.radius);
+    volume.max.y() = std::max(volume.max.y(), s.center.z() + s.radius);
 }
 
 
 void scene_manager::build_scene()
 {
-    aabb volume{vec2::zero, 0.0f};
+    aabb volume{ vec2::zero, vec2::zero };
     for (const auto& o : m_objects)
     {
         auto& hitable = static_cast<sphere_object*>(o.get())->get_object();

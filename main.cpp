@@ -243,8 +243,8 @@ void render(scene_manager& scene, const camera& cam, const image& img)
 
 void dump(const quadnode& node)
 {
-    cout << setw(node.get_depth() - 1) << "*" << " " 
-         << node.get_volume().center << ", " << node.get_volume().half_width;
+    cout << setw(node.get_depth() - 1) << "*" << " "
+        << node.get_volume().center() << ", " << node.get_volume().extent();
 
     if (node.is_leaf()) {
         cout << "\n" << setw(node.get_depth());
