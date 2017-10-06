@@ -1,5 +1,4 @@
 #define RANDOM_SCENE
-#define SHOW_PROGRESS
 #define MT
 
 #include "camera.h"
@@ -19,6 +18,7 @@
 #include "world.h"
 
 #include <ctpl_stl.h>
+#include <boost/program_options.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -31,11 +31,14 @@
 #include <memory>
 #include <mutex>
 #include <random>
+#include <string>
+#include <thread>
 #include <unordered_set>
 #include <vector>
 
 using namespace std;
 using namespace kismet;
+namespace po = boost::program_options;
 
 using object_list = std::vector<object*>;
 
@@ -94,6 +97,13 @@ inline unique_ptr<sphere> dielectric_sphere(const vec3& center, float r, float i
 {
     return make_unique<sphere>(center, r, make_shared<dielectric>(index));
 }
+
+struct options
+{
+    string output;
+    int num_threads;
+    bool report_progress;
+};
 
 unique_ptr<scene_manager> random_scene(bool quadtree)
 {
@@ -192,10 +202,10 @@ void render(scene_manager& scene, const camera& cam, object_list& hitables,
     }
 }
 
-void render(scene_manager& scene, const camera& cam, const image& img)
+void render(scene_manager& scene, const camera& cam, const image& img, const options& opts)
 {
 #ifdef MT
-    int num_threads = 2;
+    int num_threads = opts.num_threads;
     ctpl::thread_pool pool(num_threads);
 #else
     int num_threads = 1;
@@ -203,11 +213,9 @@ void render(scene_manager& scene, const camera& cam, const image& img)
     std::vector<unsigned char> buf(img.width * img.height * 3);
     std::vector<object_list> object_list_buf(num_threads);
     
-#ifdef SHOW_PROGRESS
     mutex mtx;
     condition_variable cv;
     int counter = 0;
-#endif
     
     const int rows = min(img.height / 2, 2);
     for (int i = img.height - 1; i >= 0; ) {
@@ -220,34 +228,30 @@ void render(scene_manager& scene, const camera& cam, const image& img)
 #endif
             render(scene, cam, object_list_buf[id], img, start, end, &buf[(img.height - 1 - start) * img.width * 3]);
             
-#ifdef SHOW_PROGRESS
-            {
+            if (opts.report_progress) {
                 unique_lock<mutex> lock(mtx);
                 counter += start - end + 1;
                 cv.notify_one();
             }
-#endif
 #ifdef MT
         });
 #endif
         i = --end;
     }
     
-#ifdef SHOW_PROGRESS
-    {
+    if (opts.report_progress) {
         unique_lock<mutex> lock(mtx);
         while (counter < img.height) {
             cout << "progress " << (int)((float)counter / img.height * 100) << "\n";
             cv.wait(lock);
         }
+        cout << "done\n";
     }
-    cout << "done\n";
-#endif
     
 #ifdef MT
     pool.stop(true);
 #endif
-    ofstream out("output.ppm");
+    ofstream out(opts.output);
     out << "P3\n" << img.width << " " << img.height << "\n255\n";
     for (auto i = 0u; i < buf.size(); i += 3) {
         out << (int)buf[i] << " " << (int)buf[i + 1] << " " << (int)buf[i + 2] << "\n";
@@ -282,25 +286,38 @@ int get_object_count(const quadnode& root)
 int main(int argc, char* argv[])
 {
     image img;
-    img.width = 300;
-    img.height = 150;
-    img.samples = 100;
-    if (argc > 1) {
-        if (argc < 4) {
-            cerr << "tracer width height samples\n";
-            return 1;
-        }
-
-        img.width   = atoi(argv[1]);
-        img.height  = atoi(argv[2]);
-        img.samples = atoi(argv[3]);
+    options opts;
+    bool use_quadtree;
+    
+    po::options_description desc;
+    desc.add_options()
+        ("help,h", "help message")
+        (",j", po::value<int>(&opts.num_threads)->default_value(thread::hardware_concurrency()), "threads for rendering")
+        ("width", po::value<int>(&img.width)->default_value(300), "image width")
+        ("height", po::value<int>(&img.height)->default_value(200), "image height")
+        ("sample", po::value<int>(&img.samples)->default_value(100), "samples per pixel")
+        ("quadtree", po::value<bool>(&use_quadtree)->default_value(false), "use quadtree for spatial partitioning")
+        (",p", po::value<bool>(&opts.report_progress)->default_value(true), "report rendering progress")
+        ("output,o", po::value<string>(&opts.output)->default_value("output.ppm"), "output ppm name")
+    ;
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+    } catch (const po::error& e) {
+        cerr << e.what() << "\n";
+        return 1;
     }
-
+    
+    if (vm.count("help") || vm.count("h")) {
+        cerr << desc << "\n";
+        return 1;
+    }
+    
     vec3 pos, lookat;
     float aperture, dist_to_focus;
     
     unique_ptr<scene_manager> scene;
-    constexpr bool use_quadtree = false;
 #ifndef RANDOM_SCENE
     pos = vec3(0, 2, 7);
     lookat = vec3::zero;
@@ -324,7 +341,7 @@ int main(int argc, char* argv[])
     using namespace chrono;
     auto start = high_resolution_clock::now();
 
-    render(*scene, cam, img);
+    render(*scene, cam, img, opts);
 
     auto end = high_resolution_clock::now();
     cout << "duration: " << duration_cast<milliseconds>(end - start).count() << "\n";

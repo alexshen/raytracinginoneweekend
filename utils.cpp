@@ -2,13 +2,13 @@
 //#define DRAND48
 
 #include "utils.h"
-#ifndef FAST_RAND
-#  include <random>
-using namespace std;
-#endif
-
 #include "aabb.h"
 #include "sphere.h"
+
+#include <cmath>
+#ifndef FAST_RAND
+#  include <random>
+#endif
 
 vec3 random_in_unit_sphere()
 {
@@ -100,7 +100,7 @@ bool intersect(const ray2 & r, const aabb & volume)
     // origin is outside of the bounding volume, check intersection
     if (!inside) {
         for (int i = 0; i < 2; ++i) {
-            if (quadrant[i] != middle && abs(r.dir[i]) > epsilon) {
+            if (quadrant[i] != middle && std::abs(r.dir[i]) > epsilon) {
                 t[i] = (edges[i] - r.origin[i]) / r.dir[i];
             } else {
                 // no intersection;

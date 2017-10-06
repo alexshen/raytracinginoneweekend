@@ -6,6 +6,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_subdirectory(kismet)
 
+find_package(Boost COMPONENTS program_options REQUIRED)
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
     message(STATUS "set build type to Release")
@@ -32,6 +34,7 @@ add_executable(tracer
 )
 
 target_include_directories(tracer
-    PRIVATE kismet/include ctpl)
-target_link_libraries(tracer PRIVATE math)
+    PRIVATE kismet/include ctpl ${Boost_INCLUDE_DIRS})
+target_link_libraries(tracer
+    PRIVATE math ${Boost_LIBRARIES})
 target_compile_features(tracer PRIVATE cxx_std_17)
