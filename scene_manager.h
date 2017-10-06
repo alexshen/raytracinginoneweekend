@@ -1,8 +1,7 @@
 #ifndef SCENE_MANAGER_H
 #define SCENE_MANAGER_H
 
-#include "quadtree.h"
-
+#include "partition.h"
 #include "sphere.h"
 #include "sphere_object.h"
 
@@ -21,13 +20,13 @@ public:
         m_objects.push_back(std::make_unique<sphere_object>(std::move(p)));
     }
     
-    void build_scene();
+    virtual void build_scene() = 0;
     
-    quadnode& root() { return *m_root; }
-    const quadnode& root() const { return *m_root; }
-private:
+    spatial_partition& root() { return *m_root; }
+    const spatial_partition& root() const { return *m_root; }
+protected:
     std::vector<std::unique_ptr<object>> m_objects;
-    std::unique_ptr<quadnode> m_root;
+    std::unique_ptr<spatial_partition> m_root;
 };
 
 #endif /* SCENE_MANAGER_H */

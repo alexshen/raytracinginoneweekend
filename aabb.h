@@ -2,6 +2,7 @@
 #define AABB_H
 
 #include "vec.h"
+#include <algorithm>
 
 struct aabb
 {
@@ -18,6 +19,15 @@ struct aabb
         float s = std::max(min[axis], rhs.min[axis]);
         float e = std::min(max[axis], rhs.max[axis]);
         return s < e;
+    }
+
+    void expand(const aabb& rhs)
+    {
+        min.x() = std::min(min.x(), rhs.min.x());
+        max.x() = std::max(max.x(), rhs.max.x());
+
+        min.y() = std::min(min.y(), rhs.min.y());
+        max.y() = std::max(max.y(), rhs.max.y());
     }
 
     vec2 min;

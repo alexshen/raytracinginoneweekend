@@ -1,6 +1,7 @@
 #include "quadtree.h"
 
 #include "object.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cassert>
@@ -106,59 +107,8 @@ void quadnode::raycast(const ray2& r, std::vector<object*>& objs) const
 
 void quadnode::raycast_impl(const ray2& r, std::vector<object*>& objs) const
 {
-    constexpr float epsilon = 0.0001f;
-
-    enum which_side : char { neg, pos, middle };
-
-    // fast ray box intersection, Graphic Gems I
-    char quadrant[2];
-    // the edges to test against intersection
-    float edges[2];
-    float t[2];
-    bool inside = true;
-
-    // for each axis, find candidate edges
-    for (int i = 0; i < 2; ++i) {
-        if (r.origin[i] < m_volume.min[i]) {
-            quadrant[i] = neg;
-            edges[i] = m_volume.min[i];
-            inside = false;
-        } else if (r.origin[i] > m_volume.max[i]) {
-            quadrant[i] = pos;
-            edges[i] = m_volume.max[i];
-            inside = false;
-        } else {
-            quadrant[i] = middle;
-        }
-    }
-
-    // origin is outside of the bounding volume, check intersection
-    if (!inside) {
-        for (int i = 0; i < 2; ++i) {
-            if (quadrant[i] != middle && abs(r.dir[i]) > epsilon) {
-                t[i] = (edges[i] - r.origin[i]) / r.dir[i];
-            } else {
-                // no intersection;
-                t[i] = -1.0f;
-            }
-        }
-
-        // find the intersection axis
-        int axis = 0;
-        if (t[0] < t[1]) {
-            axis = 1;
-        }
-
-        if (t[axis] < 0) {
-            return;
-        }
-
-        // check if the intersection point is actually valid on another axis
-        int check_axis = 1 - axis;
-        float coord = r.origin[check_axis] + t[axis] * r.dir[check_axis];
-        if (coord <= m_volume.min[check_axis] || coord >= m_volume.max[check_axis]) {
-            return;
-        }
+    if (!intersect(r, m_volume)) {
+        return;
     }
 
     for (const auto& o : m_objects) {

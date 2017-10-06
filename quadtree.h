@@ -2,6 +2,7 @@
 #define QUADTREE_H
 
 #include "aabb.h"
+#include "partition.h"
 #include "ray.h"
 #include "vec.h"
 
@@ -13,7 +14,7 @@
 
 class object;
 
-class quadnode
+class quadnode : public spatial_partition
 {
     using object_list = std::vector<object*>;
 public:
@@ -27,9 +28,11 @@ public:
 
     void insert(object* p);
     // objs may contain duplicate objects
-    void raycast(const ray2& r, std::vector<object*>& objs) const;
+    void raycast(const ray2& r, std::vector<object*>& objs) const override;
 
+    aabb& get_volume() { return m_volume; }
     const aabb& get_volume() const { return m_volume; }
+
     int get_depth() const { return m_depth; }
 
     quadnode* get_child(int i)
