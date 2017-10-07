@@ -6,6 +6,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_subdirectory(kismet)
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+	set(Boost_USE_STATIC_LIBS ON)
+endif()
 find_package(Boost COMPONENTS program_options REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE)
