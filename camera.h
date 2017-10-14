@@ -9,7 +9,7 @@ class camera
 public:
     // fov in degress
     camera(const vec3& pos, const vec3& lookat, const vec3& up, float fov, float aspect,
-           float aperture, float focus_distance);
+           float aperture, float focus_distance, float time0, float time1);
 
     ray get_ray(float u, float v) const;
 
@@ -20,6 +20,8 @@ public:
     vec3 right;
     vec3 up;
     float lens_radius;
+    float time0;
+    float time1;
 };
 
 #endif // CAMERA_H

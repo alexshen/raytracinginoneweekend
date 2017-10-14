@@ -9,9 +9,11 @@ using namespace std;
 using namespace kismet::math;
 
 camera::camera(const vec3& pos, const vec3& lookat, const vec3& up, float fov, float aspect,
-               float aperture, float focus_dist)
+               float aperture, float focus_dist, float time0, float time1)
     : origin(pos)
     , lens_radius(aperture * 0.5f)
+    , time0(time0)
+    , time1(time1)
 {
     vec3 cam_forward = normalize(lookat - pos);
     right = normalize(cross(cam_forward, up));
@@ -33,6 +35,7 @@ ray camera::get_ray(float u, float v) const
     ray r;
     r.origin = origin + offset;
     r.dir = lower_left + u * horizontal + v * vertical - r.origin;
+    r.time = lerp(time0, time1, random_unit());
 
     return r;
 }

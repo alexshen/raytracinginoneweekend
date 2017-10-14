@@ -128,3 +128,38 @@ bool intersect(const ray2 & r, const aabb & volume)
 
     return true;
 }
+
+static hit_record compute_sphere_hit(const vec3& center, float radius, const ray& r, float t)
+{
+    hit_record rec;
+    rec.t = t;
+    rec.p = r.point_at(t);
+    rec.normal = (rec.p - center) / radius;
+    return rec;
+}
+
+bool sphere_hit(const vec3& center, float radius, const ray& r, float tmin, float tmax, hit_record& rec)
+{
+    vec3 oc = r.origin - center;
+    float a = dot(r.dir, r.dir);
+    float b = dot(r.dir, oc);
+    float c = dot(oc, oc) - radius * radius;
+
+    float discriminant = b * b - a * c;
+    if (discriminant > 0) {
+        float dis2 = sqrtf(discriminant);
+        float inv_a = 1.0f / a;
+        float t = (-b - dis2) * inv_a;
+        if (tmin < t && t < tmax) {
+            rec = compute_sphere_hit(center, radius, r, t);
+            return true;
+        }
+
+        t = (-b + dis2) * inv_a;
+        if (tmin < t && t < tmax) {
+            rec = compute_sphere_hit(center, radius, r, t);
+            return true;
+        }
+    }
+    return false;
+}

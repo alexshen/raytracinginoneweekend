@@ -6,6 +6,19 @@
 
 struct aabb
 {
+    aabb() = default;
+    aabb(const vec2& min, const vec2& max)
+        : min(min)
+        , max(max)
+    {
+    }
+    
+    aabb(const vec2& center, float radius)
+        : min(center.x() - radius, center.y() - radius)
+        , max(center.x() + radius, center.y() + radius)
+    {
+    }
+    
     vec2 center() const { return (min + max) * 0.5f; }
     vec2 extent() const { return (max - min) * 0.5f; }
 

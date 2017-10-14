@@ -8,9 +8,10 @@ class basic_ray
 {
 public:
     basic_ray() = default;
-    basic_ray(const T& origin, const T& dir)
+    basic_ray(const T& origin, const T& dir, float time)
         : origin(origin)
         , dir(dir)
+        , time(time)
     {
     }
 
@@ -21,6 +22,7 @@ public:
 
     T origin;
     T dir;
+    float time;
 };
 
 using ray = basic_ray<vec3>;

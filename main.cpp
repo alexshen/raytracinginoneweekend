@@ -12,6 +12,7 @@
 #include "quadtree_manager.h"
 #include "bvh_manager.h"
 #include "sphere.h"
+#include "moving_sphere.h"
 #include "utils.h"
 #include "vec.h"
 #include "world.h"
@@ -60,9 +61,9 @@ vec3 color(const ray& r, scene_manager& scene, object_list& hitables, int depth 
 {
     hitables.clear();
     
-    auto origin2 = vec2(r.origin.x(), r.origin.z());
-    auto dir2 = vec2(r.dir.x(), r.dir.z());
-    scene.root().raycast(ray2(origin2, dir2), hitables);
+    auto origin2 = xz(r.origin);
+    auto dir2 = xz(r.dir);
+    scene.root().raycast(ray2(origin2, dir2, r.time), hitables);
 
     hit_record rec;
     
@@ -82,17 +83,27 @@ vec3 color(const ray& r, scene_manager& scene, object_list& hitables, int depth 
     return lerp(vec3(1.0f, 1.0f, 1.0f), vec3(0.5f, 0.7f, 1.0f), t);
 }
 
-inline unique_ptr<sphere> lambertian_sphere(const vec3& center, float r, const vec3& albedo)
+inline unique_ptr<hitable> lambertian_sphere(const vec3& center, float r, const vec3& albedo)
 {
     return make_unique<sphere>(center, r, make_shared<lambertian>(albedo));
 }
 
-inline unique_ptr<sphere> metal_sphere(const vec3& center, float r, const vec3& albedo, float fuzz = 0.0f)
+inline unique_ptr<hitable> lambertian_moving_sphere(const vec3& center0, const vec3& center1,
+                                                    float time0, float time1,
+                                                    float radius, const vec3& albedo)
+{
+    return make_unique<moving_sphere>(center0, center1,
+                                      time0, time1,
+                                      radius,
+                                      make_shared<lambertian>(albedo));
+}
+
+inline unique_ptr<hitable> metal_sphere(const vec3& center, float r, const vec3& albedo, float fuzz = 0.0f)
 {
     return make_unique<sphere>(center, r, make_shared<metal>(albedo, fuzz));
 }
 
-inline unique_ptr<sphere> dielectric_sphere(const vec3& center, float r, float index)
+inline unique_ptr<hitable> dielectric_sphere(const vec3& center, float r, float index)
 {
     return make_unique<sphere>(center, r, make_shared<dielectric>(index));
 }
@@ -124,10 +135,11 @@ unique_ptr<scene_manager> random_scene(bool quadtree)
             vec3 center(a + 0.9f * random_unit(), 0.2f, b + 0.9f * random_unit());
             if ((center - vec3(4, 0.2f, 0)).mag() > 0.9f) {
                 if (choose_mat < 0.8f) {
-                    scene->add(lambertian_sphere(center, 0.2f,
-                                                  vec3(random_unit() * random_unit(),
-                                                       random_unit() * random_unit(),
-                                                       random_unit() * random_unit())));
+                    scene->add(lambertian_moving_sphere(center, center + vec3(0.0f, 0.5f * random_unit(), 0.0f),
+                                                        0.0f, 1.0f, 0.2f,
+                                                        vec3(random_unit() * random_unit(),
+                                                             random_unit() * random_unit(),
+                                                             random_unit() * random_unit())));
                 } else if (choose_mat < 0.95f) {
                     scene->add(metal_sphere(center, 0.2f,
                                              vec3(0.5f * (1 + random_unit()),
@@ -295,8 +307,8 @@ int main(int argc, char* argv[])
         ("width", po::value<int>(&img.width)->default_value(300), "image width")
         ("height", po::value<int>(&img.height)->default_value(200), "image height")
         ("sample", po::value<int>(&img.samples)->default_value(100), "samples per pixel")
-        ("quadtree", po::value<bool>(&use_quadtree)->default_value(false), "use quadtree for spatial partitioning")
-        (",p", po::value<bool>(&opts.report_progress)->default_value(true), "report rendering progress")
+        ("quadtree", po::bool_switch(&use_quadtree)->default_value(false), "use quadtree for spatial partitioning")
+        (",p", po::bool_switch(&opts.report_progress)->default_value(true), "report rendering progress")
         ("output,o", po::value<string>(&opts.output)->default_value("output.ppm"), "output ppm name")
     ;
     po::variables_map vm;
@@ -335,7 +347,10 @@ int main(int argc, char* argv[])
 
     scene->build_scene();
     
-    camera cam(pos, lookat, vec3::up, 20.0f, (float)img.width / img.height, aperture, dist_to_focus);
+    camera cam(pos, lookat, vec3::up,
+               20.0f, (float)img.width / img.height,
+               aperture, dist_to_focus,
+               0.0f, 1.0f);
     
     using namespace chrono;
     auto start = high_resolution_clock::now();
