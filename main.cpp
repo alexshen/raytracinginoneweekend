@@ -12,7 +12,6 @@
 #include "quadtree_manager.h"
 #include "bvh_manager.h"
 #include "sphere.h"
-#include "sphere_object.h"
 #include "utils.h"
 #include "vec.h"
 #include "world.h"
@@ -42,14 +41,14 @@ namespace po = boost::program_options;
 
 using object_list = std::vector<object*>;
 
-bool check_hit(const object_list& objects, const ray& r, float tmin, float tmax, hit_record& rec)
+bool check_hit(const object_list& hitables, const ray& r, float tmin, float tmax, hit_record& rec)
 {
     bool hit = false;
     rec.t = tmax;
     hit_record tmp;
-    for (auto o : objects) {
-        auto& obj = static_cast<hitable_object&>(*o);
-        if (obj.get_object().hit(r, tmin, rec.t, tmp)) {
+    for (auto o : hitables) {
+        auto& obj = static_cast<hitable&>(*o);
+        if (obj.hit(r, tmin, rec.t, tmp)) {
             rec = tmp;
             hit = true;
         }

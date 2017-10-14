@@ -2,8 +2,6 @@
 #define SCENE_MANAGER_H
 
 #include "partition.h"
-#include "sphere.h"
-#include "sphere_object.h"
 
 #include <memory>
 #include <utility>
@@ -15,9 +13,9 @@ public:
     object* get_object(int i) { return m_objects[i].get(); }
     int object_count() const { return (int)m_objects.size(); }
     
-    void add(std::unique_ptr<sphere> p)
+    void add(std::unique_ptr<object> p)
     {
-        m_objects.push_back(std::make_unique<sphere_object>(std::move(p)));
+        m_objects.push_back(std::move(p));
     }
     
     virtual void build_scene() = 0;

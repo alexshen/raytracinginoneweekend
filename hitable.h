@@ -4,6 +4,7 @@
 #include "vec.h"
 #include "ray.h"
 #include "material.h"
+#include "object.h"
 
 struct hit_record
 {
@@ -13,7 +14,7 @@ struct hit_record
     const material* mat;
 };
 
-class hitable
+class hitable : public object
 {
 public:
     hitable() = default;
