@@ -3,20 +3,22 @@
 
 #include "material.h"
 #include "vec.h"
+#include "texture.h"
+#include <utility>
 
 class lambertian : public material
 {
 public:
     lambertian() = default;
-    lambertian(const vec3& a)
-        : albedo(a)
+    lambertian(texture_ptr a)
+        : albedo(std::move(a))
     {
     }
 
     bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation,
                  ray& scattered) const override;
 
-    vec3 albedo;
+    texture_ptr albedo;
 };
 
 #endif // LAMBERTIAN_H

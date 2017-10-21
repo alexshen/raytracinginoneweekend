@@ -2,6 +2,8 @@
 #define MT
 
 #include "camera.h"
+#include "constant_texture.h"
+#include "checker_texture.h"
 #include "dielectric.h"
 #include "lambertian.h"
 #include "material.h"
@@ -83,9 +85,19 @@ vec3 color(const ray& r, scene_manager& scene, object_list& hitables, int depth 
     return lerp(vec3(1.0f, 1.0f, 1.0f), vec3(0.5f, 0.7f, 1.0f), t);
 }
 
+inline texture_ptr texture_constant(const vec3& albedo)
+{
+    return make_shared<constant_texture>(albedo);
+}
+
 inline unique_ptr<hitable> lambertian_sphere(const vec3& center, float r, const vec3& albedo)
 {
-    return make_unique<sphere>(center, r, make_shared<lambertian>(albedo));
+    return make_unique<sphere>(center, r, make_shared<lambertian>(texture_constant(albedo)));
+}
+
+inline unique_ptr<hitable> lambertian_sphere(const vec3& center, float r, texture_ptr albedo)
+{
+    return make_unique<sphere>(center, r, make_shared<lambertian>(move(albedo)));
 }
 
 inline unique_ptr<hitable> lambertian_moving_sphere(const vec3& center0, const vec3& center1,
@@ -95,7 +107,7 @@ inline unique_ptr<hitable> lambertian_moving_sphere(const vec3& center0, const v
     return make_unique<moving_sphere>(center0, center1,
                                       time0, time1,
                                       radius,
-                                      make_shared<lambertian>(albedo));
+                                      make_shared<lambertian>(texture_constant(albedo)));
 }
 
 inline unique_ptr<hitable> metal_sphere(const vec3& center, float r, const vec3& albedo, float fuzz = 0.0f)
@@ -124,7 +136,9 @@ unique_ptr<scene_manager> random_scene(bool quadtree)
         scene = make_unique<bvh_manager>();
     }
 
-    scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, vec3::one * 0.5f));
+    auto checker_tex = make_shared<checker_texture>(texture_constant(vec3(0.2f, 0.3f, 0.1f)),
+                                                    texture_constant(vec3::one * 0.9f));
+    scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, move(checker_tex)));
 
     constexpr int x_count = 11;
     constexpr int y_count = 11;
