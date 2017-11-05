@@ -21,4 +21,11 @@ bool sphere_hit(const vec3& center, float radius, const ray& r, float tmin, floa
 using kismet::math::lerp;
 using kismet::math::inverse_lerp;
 
+float tri_lerp(float e[2][2][2], float u, float v, float w);
+
+inline float smooth(float x)
+{
+    return x * x * (3 - 2 * x);
+}
+
 #endif // UTILS_H

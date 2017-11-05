@@ -163,3 +163,18 @@ bool sphere_hit(const vec3& center, float radius, const ray& r, float tmin, floa
     }
     return false;
 }
+
+float tri_lerp(float e[2][2][2], float u, float v, float w)
+{
+    float res = 0;
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            for (int k = 0; k < 2; ++k) {
+                res += ((1 - i) * (1 - u) + i * u) *
+                       ((1 - j) * (1 - v) + j * v) *
+                       ((1 - k) * (1 - w) + k * w) * e[i][j][k];
+            }
+        }
+    }
+    return res;
+}

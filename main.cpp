@@ -1,6 +1,7 @@
 #define RANDOM_SCENE
 #define MT
 
+#include "block_texture.h"
 #include "camera.h"
 #include "constant_texture.h"
 #include "checker_texture.h"
@@ -18,6 +19,8 @@
 #include "utils.h"
 #include "vec.h"
 #include "world.h"
+#include "perlin.h"
+#include "noise_texture.h"
 
 #include <ctpl_stl.h>
 #include <boost/program_options.hpp>
@@ -193,6 +196,14 @@ unique_ptr<scene_manager> simple_scene(bool quadtree)
     return scene;
 }
 
+unique_ptr<scene_manager> two_perlin_spheres()
+{
+    auto tex = make_shared<noise_texture>(4);
+    auto scene = make_unique<bvh_manager>();
+    scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, tex));
+    scene->add(lambertian_sphere(vec3(0, 2, 0), 2, tex));
+    return move(scene);
+}
 
 struct image
 {
@@ -310,6 +321,8 @@ int get_object_count(const quadnode& root)
 
 int main(int argc, char* argv[])
 {
+    perlin::init();
+    
     image img;
     options opts;
     bool use_quadtree;
