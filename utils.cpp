@@ -129,12 +129,25 @@ bool intersect(const ray2 & r, const aabb & volume)
     return true;
 }
 
+static vec2 compute_sphere_uv(const vec3& p)
+{
+    using namespace kismet::math;
+    
+    float u = (std::atan2(p.x(), p.z()) + KISMET_PI_F) / (2.0f * KISMET_PI_F);
+    float v = std::acos(p.y()) / KISMET_PI_F;
+    
+    return vec2(u, v);
+}
+
 static hit_record compute_sphere_hit(const vec3& center, float radius, const ray& r, float t)
 {
     hit_record rec;
     rec.t = t;
     rec.p = r.point_at(t);
     rec.normal = (rec.p - center) / radius;
+    auto uv = compute_sphere_uv(rec.normal);
+    rec.u = uv.x();
+    rec.v = uv.y();
     return rec;
 }
 

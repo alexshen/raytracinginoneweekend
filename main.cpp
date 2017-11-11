@@ -1,4 +1,3 @@
-#define RANDOM_SCENE
 #define MT
 
 #include "block_texture.h"
@@ -21,6 +20,7 @@
 #include "world.h"
 #include "perlin.h"
 #include "noise_texture.h"
+#include "image_texture.h"
 
 #include <ctpl_stl.h>
 #include <boost/program_options.hpp>
@@ -139,9 +139,15 @@ unique_ptr<scene_manager> random_scene(bool quadtree)
         scene = make_unique<bvh_manager>();
     }
 
+    std::vector<vec3> colors{
+        vec3::one * 0.9f, vec3::one * 0.6f,
+        vec3::one * 0.5f, vec3::one * 0.2f
+    };
+    auto block_tex = make_shared<block_texture>(colors, 2);
     auto checker_tex = make_shared<checker_texture>(texture_constant(vec3(0.2f, 0.3f, 0.1f)),
                                                     texture_constant(vec3::one * 0.9f));
-    scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, move(checker_tex)));
+    //scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, move(checker_tex)));
+    scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, move(block_tex)));
 
     constexpr int x_count = 11;
     constexpr int y_count = 11;
@@ -356,7 +362,7 @@ int main(int argc, char* argv[])
     float aperture, dist_to_focus;
     
     unique_ptr<scene_manager> scene;
-#ifndef RANDOM_SCENE
+#if 0
     pos = vec3(0, 2, 7);
     lookat = vec3::zero;
     aperture = 0;
@@ -372,6 +378,7 @@ int main(int argc, char* argv[])
     scene = random_scene(use_quadtree);
 #endif
 
+    scene = two_perlin_spheres();
     scene->build_scene();
     
     camera cam(pos, lookat, vec3::up,

@@ -20,6 +20,7 @@ bool sphere_hit(const vec3& center, float radius, const ray& r, float tmin, floa
 
 using kismet::math::lerp;
 using kismet::math::inverse_lerp;
+using kismet::math::clamp;
 
 float tri_lerp(float e[2][2][2], float u, float v, float w);
 
