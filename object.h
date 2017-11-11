@@ -12,6 +12,7 @@ public:
     }
 
     virtual ~object() = default;
+    // return the aabb in xz plane
     virtual aabb get_aabb() const = 0;
 
     int id() const
