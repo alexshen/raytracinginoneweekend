@@ -237,15 +237,15 @@ unique_ptr<scene_manager> two_perlin_spheres()
 
 unique_ptr<scene_manager> simple_light()
 {
-    auto tex = make_shared<noise_texture>(4);
+    auto tex = make_shared<noise_texture>(4.0f);
     auto scene = make_unique<bvh_manager>();
     scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, tex));
     scene->add(lambertian_sphere(vec3(0, 2, 0), 2, tex));
 
-    auto const_color_tex = make_shared<constant_texture>(vec3::one * 4);
+    auto const_color_tex = make_shared<constant_texture>(vec3::one * 4.0f);
     auto light = make_shared<diffuse_light>(const_color_tex);
     scene->add(lambertian_sphere(vec3(0, 7, 0), 2, light));
-    scene->add(make_unique<aa_rect>(vec2(3, 1), vec2(5, 3), -2, aa_rect::axis::z, light));
+    scene->add(make_unique<aa_rect>(vec2(3, 1), vec2(5, 3), -2.0f, aa_rect::axis::z, light));
     return move(scene);
 }
 
@@ -255,16 +255,16 @@ unique_ptr<scene_manager> cornell_box()
     auto green = lambertian_color(vec3(0.12f, 0.45f, 0.15f));
     auto red = lambertian_color(vec3(0.65f, 0.05f, 0.05f));
     auto white = lambertian_color(vec3::one * 0.73f);
-    auto light = light_source(vec3::one * 15);
+    auto light = light_source(vec3::one * 15.0f);
 
-    scene->add(make_unique<flip_normal>(aa_rect::yz(vec2::zero, vec2::one * 555, 555, green)));
-    scene->add(aa_rect::yz(vec2::zero, vec2::one * 555, 0, red));
-    scene->add(aa_rect::xz(vec2(213, 227), vec2(343, 332), 554, light));
+    scene->add(make_unique<flip_normal>(aa_rect::yz(vec2::zero, vec2::one * 555.0f, 555.0f, green)));
+    scene->add(aa_rect::yz(vec2::zero, vec2::one * 555.0f, 0, red));
+    scene->add(aa_rect::xz(vec2(213, 227), vec2(343, 332), 554.0f, light));
 
-    scene->add(aa_rect::xz(vec2::zero, vec2::one * 555, 0, white));
-    scene->add(make_unique<flip_normal>(aa_rect::xz(vec2::zero, vec2::one * 555, 555, white)));
+    scene->add(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 0, white));
+    scene->add(make_unique<flip_normal>(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 555.0f, white)));
 
-    scene->add(aa_rect::xy(vec2::zero, vec2::one * 555, 555, white));
+    scene->add(aa_rect::xy(vec2::zero, vec2::one * 555.0f, 555.0f, white));
     return scene;
 }
 
