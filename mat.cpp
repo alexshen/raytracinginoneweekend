@@ -5,7 +5,8 @@
 
 mat2 mat2_rotate(float angle)
 {
-    auto [sine, cosine] = sincos(angle);
+	float cosine;
+	float sine = sincos(angle, cosine);
 
     mat2 m;
 
@@ -18,9 +19,10 @@ mat2 mat2_rotate(float angle)
     return m;
 }
 
-mat3 mat3_rotate(float angle)
+mat3 mat3_rotate_y(float angle)
 {
-    auto [sine, cosine] = sincos(angle);
+	float cosine;
+	float sine = sincos(angle, cosine);
 
     mat3 m;
 

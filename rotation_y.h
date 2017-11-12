@@ -21,17 +21,17 @@ public:
     bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
     {
         // convert to local space
-        auto m2local = mat3_rotate(-m_angle);
+        auto m2local = mat3_rotate_y(-m_angle);
 
         ray lr;
         lr.origin = m2local * r.origin;
         lr.dir = m2local * r.dir;
         lr.time = r.time;
 
-        if (m_object->hit(r, tmin, tmax, rec)) {
+        if (m_object->hit(lr, tmin, tmax, rec)) {
             auto m2world = transpose(m2local);
             rec.p = m2world * rec.p;
-            // assume no scale only rotaton
+            // assume no scale only rotation
             rec.normal = m2world * rec.normal;
             return true;
         }

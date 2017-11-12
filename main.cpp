@@ -17,7 +17,7 @@
 #include "moving_sphere.h"
 #include "utils.h"
 #include "vec.h"
-#include "world.h"
+#include "hitable_list.h"
 #include "perlin.h"
 #include "noise_texture.h"
 #include "image_texture.h"

@@ -38,4 +38,11 @@ inline auto sincos(float angle)
     return std::make_pair(std::sin(rad), std::cos(rad));
 }
 
+inline float sincos(float angle, float& cosine)
+{
+    float rad = deg2rad(angle);
+	cosine = std::cos(rad);
+	return std::sin(rad);
+}
+
 #endif // UTILS_H
