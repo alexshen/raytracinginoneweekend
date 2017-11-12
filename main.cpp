@@ -21,6 +21,9 @@
 #include "perlin.h"
 #include "noise_texture.h"
 #include "image_texture.h"
+#include "diffuse_light.h"
+#include "aa_rect.h"
+#include "flip_normal.h"
 
 #include <ctpl_stl.h>
 #include <boost/program_options.hpp>
@@ -76,16 +79,21 @@ vec3 color(const ray& r, scene_manager& scene, object_list& hitables, int depth 
     if (check_hit(hitables, r, 0.001f, numeric_limits<float>::max(), rec)) {
         vec3 attenuation;
         ray scattered;
+        vec3 emitted = rec.mat->emitted(rec.u, rec.v, rec.p);
         if (depth < 50 && rec.mat->scatter(r, rec, attenuation, scattered)) {
-            return attenuation * color(scattered, scene, hitables, depth + 1);
+            return emitted + attenuation * color(scattered, scene, hitables, depth + 1);
         } else {
-            return vec3::zero;
+            return emitted;
         }
     }
 
+#if 0
     auto dir = normalize(r.dir);
     float t = 0.5f * (dir.y() + 1.0f);
     return lerp(vec3(1.0f, 1.0f, 1.0f), vec3(0.5f, 0.7f, 1.0f), t);
+#else
+    return vec3::zero;
+#endif
 }
 
 inline texture_ptr texture_constant(const vec3& albedo)
@@ -103,6 +111,16 @@ inline unique_ptr<hitable> lambertian_sphere(const vec3& center, float r, textur
     return make_unique<sphere>(center, r, make_shared<lambertian>(move(albedo)));
 }
 
+inline unique_ptr<hitable> lambertian_sphere(const vec3& center, float r, material_ptr mat)
+{
+    return make_unique<sphere>(center, r, move(mat));
+}
+
+inline material_ptr lambertian_color(const vec3& albedo)
+{
+    return make_shared<lambertian>(texture_constant(albedo));
+}
+
 inline unique_ptr<hitable> lambertian_moving_sphere(const vec3& center0, const vec3& center1,
                                                     float time0, float time1,
                                                     float radius, const vec3& albedo)
@@ -110,7 +128,7 @@ inline unique_ptr<hitable> lambertian_moving_sphere(const vec3& center0, const v
     return make_unique<moving_sphere>(center0, center1,
                                       time0, time1,
                                       radius,
-                                      make_shared<lambertian>(texture_constant(albedo)));
+                                      lambertian_color(albedo));
 }
 
 inline unique_ptr<hitable> metal_sphere(const vec3& center, float r, const vec3& albedo, float fuzz = 0.0f)
@@ -121,6 +139,11 @@ inline unique_ptr<hitable> metal_sphere(const vec3& center, float r, const vec3&
 inline unique_ptr<hitable> dielectric_sphere(const vec3& center, float r, float index)
 {
     return make_unique<sphere>(center, r, make_shared<dielectric>(index));
+}
+
+inline material_ptr light_source(const vec3& color)
+{
+    return make_shared<diffuse_light>(make_shared<constant_texture>(color));
 }
 
 struct options
@@ -204,11 +227,45 @@ unique_ptr<scene_manager> simple_scene(bool quadtree)
 
 unique_ptr<scene_manager> two_perlin_spheres()
 {
-    auto tex = make_shared<noise_texture>(4);
+    //auto tex = make_shared<noise_texture>(4);
+    auto tex = shared_ptr<image_texture>(image_texture::load("earth.jpg"));
     auto scene = make_unique<bvh_manager>();
     scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, tex));
     scene->add(lambertian_sphere(vec3(0, 2, 0), 2, tex));
     return move(scene);
+}
+
+unique_ptr<scene_manager> simple_light()
+{
+    auto tex = make_shared<noise_texture>(4);
+    auto scene = make_unique<bvh_manager>();
+    scene->add(lambertian_sphere(vec3(0, -1000, 0), 1000, tex));
+    scene->add(lambertian_sphere(vec3(0, 2, 0), 2, tex));
+
+    auto const_color_tex = make_shared<constant_texture>(vec3::one * 4);
+    auto light = make_shared<diffuse_light>(const_color_tex);
+    scene->add(lambertian_sphere(vec3(0, 7, 0), 2, light));
+    scene->add(make_unique<aa_rect>(vec2(3, 1), vec2(5, 3), -2, aa_rect::axis::z, light));
+    return move(scene);
+}
+
+unique_ptr<scene_manager> cornell_box()
+{
+    auto scene = make_unique<bvh_manager>();
+    auto green = lambertian_color(vec3(0.12f, 0.45f, 0.15f));
+    auto red = lambertian_color(vec3(0.65f, 0.05f, 0.05f));
+    auto white = lambertian_color(vec3::one * 0.73f);
+    auto light = light_source(vec3::one * 15);
+
+    scene->add(make_unique<flip_normal>(aa_rect::yz(vec2::zero, vec2::one * 555, 555, green)));
+    scene->add(aa_rect::yz(vec2::zero, vec2::one * 555, 0, red));
+    scene->add(aa_rect::xz(vec2(213, 227), vec2(343, 332), 554, light));
+
+    scene->add(aa_rect::xz(vec2::zero, vec2::one * 555, 0, white));
+    scene->add(make_unique<flip_normal>(aa_rect::xz(vec2::zero, vec2::one * 555, 555, white)));
+
+    scene->add(aa_rect::xy(vec2::zero, vec2::one * 555, 555, white));
+    return scene;
 }
 
 struct image
@@ -370,19 +427,19 @@ int main(int argc, char* argv[])
     
     scene = simple_scene(use_quadtree);
 #else
-    pos = vec3(13, 2, 3);
-    lookat = vec3::zero;
-    aperture = 0.1f;
+    pos = vec3(278, 278, -800);
+    lookat = vec3(278, 278, 0);
+    aperture = 0.0f;
     dist_to_focus = 10.0f;
     
     scene = random_scene(use_quadtree);
 #endif
 
-    scene = two_perlin_spheres();
+    scene = cornell_box();
     scene->build_scene();
     
     camera cam(pos, lookat, vec3::up,
-               20.0f, (float)img.width / img.height,
+               40.0f, (float)img.width / img.height,
                aperture, dist_to_focus,
                0.0f, 1.0f);
     
