@@ -2,7 +2,10 @@
 #define AABB_H
 
 #include "vec.h"
+#include "utils.h"
+#include "mat.h"
 #include <algorithm>
+#include <cmath>
 
 struct aabb
 {
@@ -41,6 +44,30 @@ struct aabb
 
         min.y() = std::min(min.y(), rhs.min.y());
         max.y() = std::max(max.y(), rhs.max.y());
+    }
+
+    void translate(const vec2& offset)
+    {
+        min += offset;
+        max += offset;
+    }
+
+    void rotate(float angle)
+    {
+        auto mmin = vec2::zero;
+        auto mmax = vec2::zero;
+        auto m = mat2_rotate(angle);
+        // for each axis
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                float a = min[j] * m[i][j];
+                float b = max[j] * m[i][j];
+                mmin[j] += std::min(a, b);
+                mmax[j] += std::max(a, b);
+            }
+        }
+        min = mmin;
+        max = mmax;
     }
 
     vec2 min;

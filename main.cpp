@@ -24,6 +24,9 @@
 #include "diffuse_light.h"
 #include "aa_rect.h"
 #include "flip_normal.h"
+#include "box.h"
+#include "translation.h"
+#include "rotation_y.h"
 
 #include <ctpl_stl.h>
 #include <boost/program_options.hpp>
@@ -146,6 +149,16 @@ inline material_ptr light_source(const vec3& color)
     return make_shared<diffuse_light>(make_shared<constant_texture>(color));
 }
 
+inline unique_ptr<hitable> translate(unique_ptr<hitable> obj, const vec3& offset)
+{
+    return make_unique<translation>(move(obj), offset);
+}
+
+inline unique_ptr<hitable> rotate_y(unique_ptr<hitable> obj, float angle)
+{
+    return make_unique<rotation_y>(move(obj), angle);
+}
+
 struct options
 {
     string output;
@@ -265,6 +278,11 @@ unique_ptr<scene_manager> cornell_box()
     scene->add(make_unique<flip_normal>(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 555.0f, white)));
 
     scene->add(aa_rect::xy(vec2::zero, vec2::one * 555.0f, 555.0f, white));
+
+    auto box0 = make_unique<box>(vec3::zero, vec3::one * 165.0f, white);
+    auto box1 = make_unique<box>(vec3::zero, vec3(165.0f, 330.0f, 165.0f), white);
+    scene->add(translate(rotate_y(move(box0), -18.0f), vec3(130.0f, 0.0f, 65.0f)));
+    scene->add(translate(rotate_y(move(box1), 15.0f), vec3(265.0f, 0.0f, 295.0f)));
     return scene;
 }
 

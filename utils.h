@@ -4,6 +4,8 @@
 #include "vec.h"
 #include "ray.h"
 #include <kismet/math/utility.h>
+#include <cmath>
+#include <utility>
 
 vec3 random_in_unit_sphere();
 vec2 random_in_unit_disk();
@@ -21,12 +23,19 @@ bool sphere_hit(const vec3& center, float radius, const ray& r, float tmin, floa
 using kismet::math::lerp;
 using kismet::math::inverse_lerp;
 using kismet::math::clamp;
+using kismet::math::deg2rad;
 
 float tri_lerp(float e[2][2][2], float u, float v, float w);
 
 inline float smooth(float x)
 {
     return x * x * (3 - 2 * x);
+}
+
+inline auto sincos(float angle)
+{
+    float rad = deg2rad(angle);
+    return std::make_pair(std::sin(rad), std::cos(rad));
 }
 
 #endif // UTILS_H
