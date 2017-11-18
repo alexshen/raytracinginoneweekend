@@ -21,7 +21,7 @@ public:
 	template<typename T, typename... Args>
 	void add(Args&&... args)
 	{
-		add(make_unique<T>(std::forward<Args>(args)...));
+		add(std::make_unique<T>(std::forward<Args>(args)...));
 	}
     
     virtual void build_scene() = 0;
