@@ -278,7 +278,7 @@ unique_ptr<scene_manager> cornell_box()
     scene->add(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 0, white));
     scene->add(make_unique<flip_normal>(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 555.0f, white)));
 
-    scene->add(aa_rect::xy(vec2::zero, vec2::one * 555.0f, 555.0f, white));
+    scene->add(make_unique<flip_normal>(aa_rect::xy(vec2::zero, vec2::one * 555.0f, 555.0f, white)));
 
     auto box0 = make_unique<box>(vec3::zero, vec3::one * 165.0f, white);
     auto box1 = make_unique<box>(vec3::zero, vec3(165.0f, 330.0f, 165.0f), white);
@@ -293,7 +293,7 @@ unique_ptr<scene_manager> cornell_smoke()
     auto green = lambertian_color(vec3(0.12f, 0.45f, 0.15f));
     auto red = lambertian_color(vec3(0.65f, 0.05f, 0.05f));
     auto white = lambertian_color(vec3::one * 0.73f);
-    auto light = light_source(vec3::one * 15.0f);
+    auto light = light_source(vec3::one * 7.0f);
 
     scene->add(make_unique<flip_normal>(aa_rect::yz(vec2::zero, vec2::one * 555.0f, 555.0f, green)));
     scene->add(aa_rect::yz(vec2::zero, vec2::one * 555.0f, 0, red));
@@ -335,9 +335,9 @@ void render(scene_manager& scene, const camera& cam, object_list& hitables,
             c /= (float)img.samples;
             
             // gamma correction
-            auto ir = (int)(sqrtf(c[0]) * 255.99f);
-            auto ig = (int)(sqrtf(c[1]) * 255.99f);
-            auto ib = (int)(sqrtf(c[2]) * 255.99f);
+            auto ir = min((int)(sqrtf(c[0]) * 255.99f), 255);
+            auto ig = min((int)(sqrtf(c[1]) * 255.99f), 255);
+            auto ib = min((int)(sqrtf(c[2]) * 255.99f), 255);
             
             *p++ = (unsigned char)ir;
             *p++ = (unsigned char)ig;
