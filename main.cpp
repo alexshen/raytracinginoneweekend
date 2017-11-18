@@ -2,6 +2,7 @@
 
 #include "block_texture.h"
 #include "camera.h"
+#include "constant_medium.h"
 #include "constant_texture.h"
 #include "checker_texture.h"
 #include "dielectric.h"
@@ -286,6 +287,32 @@ unique_ptr<scene_manager> cornell_box()
     return scene;
 }
 
+unique_ptr<scene_manager> cornell_smoke()
+{
+    auto scene = make_unique<bvh_manager>();
+    auto green = lambertian_color(vec3(0.12f, 0.45f, 0.15f));
+    auto red = lambertian_color(vec3(0.65f, 0.05f, 0.05f));
+    auto white = lambertian_color(vec3::one * 0.73f);
+    auto light = light_source(vec3::one * 15.0f);
+
+    scene->add(make_unique<flip_normal>(aa_rect::yz(vec2::zero, vec2::one * 555.0f, 555.0f, green)));
+    scene->add(aa_rect::yz(vec2::zero, vec2::one * 555.0f, 0, red));
+
+    scene->add(aa_rect::xz(vec2(113, 127), vec2(443, 432), 554.0f, light));
+    scene->add(make_unique<flip_normal>(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 555.0f, white)));
+    scene->add(aa_rect::xz(vec2::zero, vec2::one * 555.0f, 0, white));
+
+    scene->add(make_unique<flip_normal>(aa_rect::xy(vec2::zero, vec2::one * 555.0f, 555.0f, white)));
+
+    auto box0 = make_unique<box>(vec3::zero, vec3::one * 165.0f, white);
+    auto box1 = make_unique<box>(vec3::zero, vec3(165.0f, 330.0f, 165.0f), white);
+    auto smoke0 = translate(rotate_y(move(box0), -18.0f), vec3(130.0f, 0.0f, 65.0f));
+    auto smoke1 = translate(rotate_y(move(box1), 15.0f), vec3(265.0f, 0.0f, 295.0f));
+    scene->add(make_unique<constant_medium>(move(smoke0), 0.01f, texture_constant(vec3::one)));
+    scene->add(make_unique<constant_medium>(move(smoke1), 0.01f, texture_constant(vec3::zero)));
+    return scene;
+}
+
 struct image
 {
     int width;
@@ -453,7 +480,7 @@ int main(int argc, char* argv[])
     scene = random_scene(use_quadtree);
 #endif
 
-    scene = cornell_box();
+    scene = cornell_smoke();
     scene->build_scene();
     
     camera cam(pos, lookat, vec3::up,

@@ -22,7 +22,7 @@ public:
         , k(k)
         , ax(ax)
     {
-        assert(ax >= 0 && ax < 3);
+
     }
 
     bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
@@ -40,8 +40,10 @@ public:
                 if (p <= min[j] || p >= max[j]) {
                     return false;
                 }
-                rec.p[j] = p;
+                rec.p[i] = p;
                 ++j;
+            } else {
+                rec.p[i] = k;
             }
         }
         rec.t = t;
