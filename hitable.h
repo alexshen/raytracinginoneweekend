@@ -5,6 +5,7 @@
 #include "ray.h"
 #include "material.h"
 #include "object.h"
+#include <vector>
 
 struct hit_record
 {
@@ -29,5 +30,8 @@ public:
 
     material_ptr mat;
 };
+
+using object_list = std::vector<object*>;
+bool check_hit(const object_list& hitables, const ray& r, float tmin, float tmax, hit_record& rec);
 
 #endif // HITABLE_H

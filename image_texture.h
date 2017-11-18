@@ -14,7 +14,7 @@ public:
     
     vec3 value(float u, float v, const vec3& p) const override;
     
-    static std::unique_ptr<image_texture> load(const char* path);
+    static texture_ptr load(const char* path);
 private:
     const unsigned char* m_data;
     int m_nx;

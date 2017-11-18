@@ -17,7 +17,7 @@ vec3 image_texture::value(float u, float v, const vec3& p) const
     return vec3(color[0], color[1], color[2]) / 255.0f;
 }
 
-std::unique_ptr<image_texture> image_texture::load(const char* path)
+texture_ptr image_texture::load(const char* path)
 {
     int nx, ny, n;
     auto p = stbi_load(path, &nx, &ny, &n, 3);
@@ -25,5 +25,5 @@ std::unique_ptr<image_texture> image_texture::load(const char* path)
         return nullptr;
     }
     
-    return std::make_unique<image_texture>(p, nx, ny);
+    return std::make_shared<image_texture>(p, nx, ny);
 }
