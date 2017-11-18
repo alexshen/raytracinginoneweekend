@@ -41,3 +41,16 @@ target_include_directories(tracer
 target_link_libraries(tracer
     PRIVATE math ${Boost_LIBRARIES})
 target_compile_features(tracer PRIVATE cxx_std_17)
+
+# copy the earthmap texture to the output directory
+# We cannot use generator expressions in OUTPUT, instead, create a timestamp file
+# and copy the texture at the same time. This has the limitation that
+# if the target texture is removed, it won't be created.
+add_custom_command(
+    OUTPUT earthmap.ts
+    COMMAND ${CMAKE_COMMAND} -E touch earthmap.ts
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/earthmap.jpg $<TARGET_FILE_DIR:tracer>
+    DEPENDS ${CMAKE_SOURCE_DIR}/earthmap.jpg
+    COMMENT "copy earthmap.jpg"
+    VERBATIM)
+add_custom_target(earthmap ALL DEPENDS earthmap.ts)
