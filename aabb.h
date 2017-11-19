@@ -6,6 +6,7 @@
 #include "mat.h"
 #include <algorithm>
 #include <cmath>
+#include <cfloat>
 
 struct aabb
 {
@@ -25,6 +26,12 @@ struct aabb
     vec2 center() const { return (min + max) * 0.5f; }
     vec2 extent() const { return (max - min) * 0.5f; }
 
+    float area() const
+    {
+        auto size = max - min;
+        return size.x() * size.y();
+    }
+
     bool overlap(const aabb& rhs) const
     {
         return overlap(rhs, 0) && overlap(rhs, 1);
@@ -37,22 +44,32 @@ struct aabb
         return s < e;
     }
 
-    void expand(const aabb& rhs)
+    aabb& expand(const aabb& rhs)
     {
         min.x() = std::min(min.x(), rhs.min.x());
         max.x() = std::max(max.x(), rhs.max.x());
 
         min.y() = std::min(min.y(), rhs.min.y());
         max.y() = std::max(max.y(), rhs.max.y());
+
+        return *this;
     }
 
-    void translate(const vec2& offset)
+    aabb expand(aabb rhs) const
+    {
+        rhs.expand(*this);
+        return rhs;
+    }
+
+    aabb& translate(const vec2& offset)
     {
         min += offset;
         max += offset;
+
+        return *this;
     }
 
-    void rotate(float angle)
+    aabb& rotate(float angle)
     {
         auto mmin = vec2::zero;
         auto mmax = vec2::zero;
@@ -68,6 +85,15 @@ struct aabb
         }
         min = mmin;
         max = mmax;
+
+        return *this;
+    }
+
+    // the empty aabb for iterative expansion
+    static aabb empty()
+    {
+        return { vec2(FLT_MAX, FLT_MAX),
+                 vec2(-FLT_MAX, -FLT_MAX) };
     }
 
     vec2 min;

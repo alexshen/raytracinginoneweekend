@@ -16,7 +16,8 @@ public:
     const aabb& get_aabb() const { return m_volume; }
     bool is_leaf() const { return !m_left; }
 private:
-    static constexpr int max_objects = 10;
+    static constexpr int max_objects = 2;
+    static constexpr int bin_num = 1024;
 
     std::unique_ptr<bvh_node> m_left;
     std::unique_ptr<bvh_node> m_right;
