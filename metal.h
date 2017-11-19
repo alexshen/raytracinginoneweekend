@@ -13,8 +13,8 @@ public:
         , fuzz(fuzz)
     { }
 
-    bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation,
-                 ray& scattered) const override;
+    bool scatter(const ray3& r_in, const hit_record& rec, vec3& attenuation,
+                 ray3& scattered) const override;
 
     vec3 albedo;
     float fuzz;

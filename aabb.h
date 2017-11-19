@@ -2,66 +2,73 @@
 #define AABB_H
 
 #include "vec.h"
-#include "utils.h"
 #include "mat.h"
+
 #include <algorithm>
-#include <cmath>
 #include <cfloat>
 
-struct aabb
+template<typename T>
+struct basic_aabb
 {
-    aabb() = default;
-    aabb(const vec2& min, const vec2& max)
+    basic_aabb() = default;
+    basic_aabb(const T& min, const T& max)
         : min(min)
         , max(max)
     {
     }
     
-    aabb(const vec2& center, float radius)
-        : min(center.x() - radius, center.y() - radius)
-        , max(center.x() + radius, center.y() + radius)
+    basic_aabb(const T& center, float radius)
+        : min(center - T::one * radius)
+        , max(center + T::one * radius)
     {
     }
     
-    vec2 center() const { return (min + max) * 0.5f; }
-    vec2 extent() const { return (max - min) * 0.5f; }
+    T center() const { return (min + max) * 0.5f; }
+    T extent() const { return (max - min) * 0.5f; }
 
     float area() const
     {
         auto size = max - min;
-        return size.x() * size.y();
+        float total = 1.0f;
+        for (int i = 0; i < std::tuple_size_v<T>; ++i) {
+            total *= size[i];
+        }
+        return total;
     }
 
-    bool overlap(const aabb& rhs) const
+    bool overlap(const basic_aabb& rhs) const
     {
-        return overlap(rhs, 0) && overlap(rhs, 1);
+        for (int i = 0; i < std::tuple_size_v<T>; ++i) {
+            if (!overlap(rhs, i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    bool overlap(const aabb& rhs, int axis) const
+    bool overlap(const basic_aabb& rhs, int axis) const
     {
         float s = std::max(min[axis], rhs.min[axis]);
         float e = std::min(max[axis], rhs.max[axis]);
         return s < e;
     }
 
-    aabb& expand(const aabb& rhs)
+    basic_aabb& expand(const basic_aabb& rhs)
     {
-        min.x() = std::min(min.x(), rhs.min.x());
-        max.x() = std::max(max.x(), rhs.max.x());
-
-        min.y() = std::min(min.y(), rhs.min.y());
-        max.y() = std::max(max.y(), rhs.max.y());
-
+        for (int i = 0; i < std::tuple_size_v<T>; ++i) {
+            min[i] = std::min(min[i], rhs.min[i]);
+            max[i] = std::max(max[i], rhs.max[i]);
+        }
         return *this;
     }
 
-    aabb expand(aabb rhs) const
+    basic_aabb expand(basic_aabb rhs) const
     {
         rhs.expand(*this);
         return rhs;
     }
 
-    aabb& translate(const vec2& offset)
+    basic_aabb& translate(const T& offset)
     {
         min += offset;
         max += offset;
@@ -69,14 +76,14 @@ struct aabb
         return *this;
     }
 
-    aabb& rotate(float angle)
+    basic_aabb& rotate(float angle)
     {
-        auto mmin = vec2::zero;
-        auto mmax = vec2::zero;
-        auto m = mat2_rotate(angle);
+        auto mmin = T::zero;
+        auto mmax = T::zero;
+        auto m = mat_rotate_y<T>(angle);
         // for each axis
-        for (int i = 0; i < 2; ++i) {
-            for (int j = 0; j < 2; ++j) {
+        for (int i = 0; i < std::tuple_size_v<T>; ++i) {
+            for (int j = 0; j < std::tuple_size_v<T>; ++j) {
                 float a = min[j] * m[i][j];
                 float b = max[j] * m[i][j];
                 mmin[j] += std::min(a, b);
@@ -89,15 +96,17 @@ struct aabb
         return *this;
     }
 
-    // the empty aabb for iterative expansion
-    static aabb empty()
+    // the empty basic_aabb for iterative expansion
+    static basic_aabb empty()
     {
-        return { vec2(FLT_MAX, FLT_MAX),
-                 vec2(-FLT_MAX, -FLT_MAX) };
+        return { T::one * FLT_MAX, T::one * -FLT_MAX };
     }
 
-    vec2 min;
-    vec2 max;
+    T min;
+    T max;
 };
+
+using aabb2 = basic_aabb<vec2>;
+using aabb3 = basic_aabb<vec3>;
 
 #endif /* AABB_H */

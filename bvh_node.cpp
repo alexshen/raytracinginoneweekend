@@ -12,7 +12,7 @@ using namespace std;
 bvh_node::bvh_node(object** objs, int n)
 {
     // find the aabb of the current node
-    m_volume = accumulate(objs, objs + n, aabb::empty(),
+    m_volume = accumulate(objs, objs + n, aabb3::empty(),
                           [](const auto& a, auto b) {
                             return a.expand(b->get_aabb());
                           });
@@ -29,19 +29,19 @@ bvh_node::bvh_node(object** objs, int n)
         vector<float> right_areas(n);
 
         // for each axis
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 3; ++i) {
             sort(objs, objs + n, [=](auto lhs, auto rhs) {
                     return lhs->get_aabb().center()[i] < rhs->get_aabb().center()[i];
                  });
 
             // calculate the area for all possible partitions
-            auto bb = aabb::empty();
+            auto bb = aabb3::empty();
             transform(objs, objs + n, left_areas.begin(), [&](auto p) {
                         bb.expand(p->get_aabb());
                         return bb.area();
                       });
 
-            bb = aabb::empty();
+            bb = aabb3::empty();
             transform(make_reverse_iterator(objs + n), make_reverse_iterator(objs),
                       right_areas.begin(), [&](auto p) {
                         bb.expand(p->get_aabb());
@@ -93,7 +93,7 @@ bvh_node::bvh_node(object** objs, int n)
     }
 }
 
-void bvh_node::raycast(const ray2 & r, std::vector<object*>& objs) const
+void bvh_node::raycast(const ray3& r, std::vector<object*>& objs) const
 {
     if (!intersect(r, m_volume)) {
         return;

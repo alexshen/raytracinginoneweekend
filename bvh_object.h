@@ -20,21 +20,18 @@ public:
 		m_manager.build_scene();
 	}
 
-	bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
+	bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override
 	{
 		static thread_local std::vector<object*> results;
 
-		auto origin2 = xz(r.origin);
-		auto dir2 = xz(r.dir);
-
-		m_manager.root().raycast(ray2(origin2, dir2, r.time), results);
+		m_manager.root().raycast(r, results);
 		bool was_hit = check_hit(results, r, tmin, tmax, rec);
 		results.clear();
 
 		return was_hit;
 	}
 
-	aabb get_aabb() const override
+	aabb3 get_aabb() const override
 	{
 		return static_cast<const bvh_node&>(m_manager.root()).get_aabb();
 	}

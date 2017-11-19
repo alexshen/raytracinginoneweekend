@@ -18,12 +18,12 @@ public:
     {
     }
 
-    bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
+    bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override
     {
         // convert to local space
         auto m2local = mat3_rotate_y(-m_angle);
 
-        ray lr;
+        ray3 lr;
         lr.origin = m2local * r.origin;
         lr.dir = m2local * r.dir;
         lr.time = r.time;
@@ -38,7 +38,7 @@ public:
         return false;
     }
 
-    aabb get_aabb() const override
+    aabb3 get_aabb() const override
     {
         auto volume = m_object->get_aabb();
         volume.rotate(m_angle);

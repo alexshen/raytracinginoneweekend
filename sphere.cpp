@@ -9,7 +9,7 @@ sphere::sphere(const vec3& center, float radius, material_ptr mat)
 {
 }
 
-bool sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
+bool sphere::hit(const ray3& r, float tmin, float tmax, hit_record& rec) const
 {
     if (sphere_hit(center, radius, r, tmin, tmax, rec)) {
         rec.mat = mat.get();
@@ -18,7 +18,7 @@ bool sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
     return false;
 }
 
-aabb sphere::get_aabb() const
+aabb3 sphere::get_aabb() const
 {
-    return { xz(center), radius };
+    return { center, radius };
 }

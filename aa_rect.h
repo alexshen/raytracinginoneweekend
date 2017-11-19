@@ -25,7 +25,7 @@ public:
 
     }
 
-    bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
+    bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override
     {
         // parallel or containment
         if (std::abs(r.dir[ax]) < 0.001f) { return false; }
@@ -55,26 +55,13 @@ public:
         return true;
     }
 
-    aabb get_aabb() const override
+    aabb3 get_aabb() const override
     {
-        vec2 mmin, mmax;
         switch (ax) {
-        case 0:
-            mmin.x() = mmax.x() = k;
-            mmin.y() = min.y();
-            mmax.y() = max.y();
-            break;
-        case 1:
-            mmin = min;
-            mmax = max;
-            break;
-        default:
-            mmin.x() = min.x();
-            mmax.x() = max.x();
-            mmin.y() = mmax.y() = k;
-            break;
+        case 0: return { vec3(k, min[0], min[1]), vec3(k, max[0], max[1]) };
+        case 1: return { vec3(min[0], k, min[1]), vec3(max[0], k, max[1]) };
+        default: return { vec3(min[0], min[1], k), vec3(max[0], max[1], k) };
         }
-        return { mmin, mmax };
     }
 
     static std::unique_ptr<aa_rect> xy(const vec2& min, const vec2& max, float k, material_ptr mat)

@@ -29,12 +29,12 @@ public:
             aa_rect::yz(vec2(min.y(), min.z()), vec2(max.y(), max.z()), min.x(), mat)));
     }
 
-    bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
+    bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override
     {
 		return m_hitables.hit(r, tmin, tmax, rec);
     }
 
-    aabb get_aabb() const override
+    aabb3 get_aabb() const override
     {
 		return m_hitables.get_aabb();
     }

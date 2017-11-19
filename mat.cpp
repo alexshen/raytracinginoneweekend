@@ -1,9 +1,7 @@
 #include "mat.h"
 #include "utils.h"
 
-#include <cmath>
-
-mat2 mat2_rotate(float angle)
+mat2 mat2_rotate_y(float angle)
 {
 	float cosine;
 	float sine = sincos(angle, cosine);

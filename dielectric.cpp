@@ -14,8 +14,8 @@ static float schlick(float cosine, float n)
     return r0 + (1.0f - r0) * pow(1.0f - cosine, 5);
 }
 
-bool dielectric::scatter(const ray& r_in, const hit_record& rec, vec3& attenuation,
-                         ray& scattered) const
+bool dielectric::scatter(const ray3& r_in, const hit_record& rec, vec3& attenuation,
+                         ray3& scattered) const
 {
     vec3 uin = normalize(r_in.dir);
     attenuation = vec3::one;
@@ -46,9 +46,9 @@ bool dielectric::scatter(const ray& r_in, const hit_record& rec, vec3& attenuati
     }
 
     if (random_unit() < reflect_prob) {
-        scattered = ray(rec.p, reflect(uin, normal), r_in.time);
+        scattered = ray3(rec.p, reflect(uin, normal), r_in.time);
     } else {
-        scattered = ray(rec.p, refracted, r_in.time);
+        scattered = ray3(rec.p, refracted, r_in.time);
     }
     return true;
 }

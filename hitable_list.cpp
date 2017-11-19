@@ -4,7 +4,7 @@
 #include <utility>
 using namespace std;
 
-bool hitable_list::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
+bool hitable_list::hit(const ray3& r, float tmin, float tmax, hit_record& rec) const
 {
     bool hit = false;
     rec.t = tmax;

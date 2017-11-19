@@ -1,27 +1,14 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-struct aabb;
+#include "aabb.h"
 
 class object
 {
 public:
-    object()
-        : m_id(s_next_id++)
-    {
-    }
-
     virtual ~object() = default;
     // return the aabb in xz plane
-    virtual aabb get_aabb() const = 0;
-
-    int id() const
-    {
-        return m_id;
-    }
-private:
-    int m_id;
-    static int s_next_id;
+    virtual aabb3 get_aabb() const = 0;
 };
 
 

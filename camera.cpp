@@ -27,12 +27,12 @@ camera::camera(const vec3& pos, const vec3& lookat, const vec3& up, float fov, f
     vertical = 2.0f * half_height * focus_dist * this->up;
 }
 
-ray camera::get_ray(float u, float v) const
+ray3 camera::get_ray(float u, float v) const
 {
     vec2 rd = random_in_unit_disk() * lens_radius;
     vec3 offset = right * rd.x() + up * rd.y();
 
-    ray r;
+    ray3 r;
     r.origin = origin + offset;
     r.dir = lower_left + u * horizontal + v * vertical - r.origin;
     r.time = lerp(time0, time1, random_unit());

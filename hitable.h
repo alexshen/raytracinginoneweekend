@@ -26,12 +26,12 @@ public:
     {}
 
     virtual ~hitable() = default;
-    virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const = 0;
+    virtual bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const = 0;
 
     material_ptr mat;
 };
 
 using object_list = std::vector<object*>;
-bool check_hit(const object_list& hitables, const ray& r, float tmin, float tmax, hit_record& rec);
+bool check_hit(const object_list& hitables, const ray3& r, float tmin, float tmax, hit_record& rec);
 
 #endif // HITABLE_H

@@ -13,7 +13,7 @@ public:
         : m_object(std::move(obj))
     {}
 
-    bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
+    bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override
     {
         if (m_object->hit(r, tmin, tmax, rec))
         {
@@ -23,7 +23,7 @@ public:
         return false;
     }
 
-    aabb get_aabb() const override
+    aabb3 get_aabb() const override
     {
         return m_object->get_aabb();
     }

@@ -14,7 +14,7 @@ moving_sphere::moving_sphere(const vec3& center0, const vec3& center1,
 {
 }
 
-bool moving_sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
+bool moving_sphere::hit(const ray3& r, float tmin, float tmax, hit_record& rec) const
 {
     float t = inverse_lerp(time0, time1, r.time);
     vec3 center = lerp(center0, center1, t);
@@ -25,9 +25,9 @@ bool moving_sphere::hit(const ray& r, float tmin, float tmax, hit_record& rec) c
     return false;
 }
 
-aabb moving_sphere::get_aabb() const
+aabb3 moving_sphere::get_aabb() const
 {
-    aabb s1(xz(center0), radius);
-    s1.expand({xz(center1), radius});
+    aabb3 s1(center0, radius);
+    s1.expand({center1, radius});
     return s1;
 }

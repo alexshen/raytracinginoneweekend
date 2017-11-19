@@ -1,6 +1,6 @@
 #include "hitable.h"
 
-bool check_hit(const object_list& hitables, const ray& r, float tmin, float tmax, hit_record& rec)
+bool check_hit(const object_list& hitables, const ray3& r, float tmin, float tmax, hit_record& rec)
 {
 	bool hit = false;
 	rec.t = tmax;

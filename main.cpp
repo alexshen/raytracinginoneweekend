@@ -10,10 +10,8 @@
 #include "lambertian.h"
 #include "material.h"
 #include "metal.h"
-#include "quadtree.h"
 #include "ray.h"
 #include "scene_manager.h"
-#include "quadtree_manager.h"
 #include "bvh_manager.h"
 #include "sphere.h"
 #include "moving_sphere.h"
@@ -53,20 +51,17 @@ using namespace std;
 using namespace kismet;
 namespace po = boost::program_options;
 
-vec3 color(const ray& r, scene_manager& scene, object_list& hitables, int depth = 0)
+vec3 color(const ray3& r, scene_manager& scene, object_list& hitables, int depth = 0)
 {
     hitables.clear();
-    
-    auto origin2 = xz(r.origin);
-    auto dir2 = xz(r.dir);
-    scene.root().raycast(ray2(origin2, dir2, r.time), hitables);
+    scene.root().raycast(r, hitables);
 
     hit_record rec;
     
     // 0.001 to avoid shadow acne
     if (check_hit(hitables, r, 0.001f, numeric_limits<float>::max(), rec)) {
         vec3 attenuation;
-        ray scattered;
+        ray3 scattered;
         vec3 emitted = rec.mat->emitted(rec.u, rec.v, rec.p);
         if (depth < 50 && rec.mat->scatter(r, rec, attenuation, scattered)) {
             return emitted + attenuation * color(scattered, scene, hitables, depth + 1);
@@ -156,15 +151,9 @@ struct options
     bool report_progress;
 };
 
-unique_ptr<scene_manager> oneweekend_final_scene(bool quadtree)
+unique_ptr<scene_manager> oneweekend_final_scene()
 {
-    unique_ptr<scene_manager> scene;
-    if (quadtree) {
-        scene = make_unique<quadtree_manager>();
-    } else {
-        scene = make_unique<bvh_manager>();
-    }
-
+    auto scene = make_unique<bvh_manager>();
     std::vector<vec3> colors{
         vec3::one * 0.9f, vec3::one * 0.6f,
         vec3::one * 0.5f, vec3::one * 0.2f
@@ -209,15 +198,9 @@ unique_ptr<scene_manager> oneweekend_final_scene(bool quadtree)
     return scene;
 }
 
-unique_ptr<scene_manager> simple_scene(bool quadtree)
+unique_ptr<scene_manager> simple_scene()
 {
-    unique_ptr<scene_manager> scene;
-    
-    if (quadtree) {
-        scene = make_unique<quadtree_manager>();
-    } else {
-        scene = make_unique<bvh_manager>();
-    }
+    auto scene = make_unique<bvh_manager>();
 
     scene->add(lambertian_sphere(vec3(0, 0, -1), 0.5f, vec3(0.1f, 0.2f, 0.5f)));
     scene->add(lambertian_sphere(vec3(0, -100.5, -1), 100, vec3(0.8f, 0.8f, 0)));
@@ -302,7 +285,7 @@ unique_ptr<scene_manager> cornell_smoke()
     return scene;
 }
 
-unique_ptr<scene_manager> nextweekend_final_scene()
+unique_ptr<scene_manager> nextweek_final_scene()
 {
 	auto scene = make_unique<bvh_manager>();
 	auto white = lambertian_color(vec3::one * 0.73f);
@@ -367,7 +350,7 @@ void render(scene_manager& scene, const camera& cam, object_list& hitables,
             for (int n = 0; n < img.samples; ++n) {
                 float u = (float)(j + random_unit()) / img.width;
                 float v = (float)(i + random_unit()) / img.height;
-                ray r = cam.get_ray(u, v);
+                auto r = cam.get_ray(u, v);
                 c += color(r, scene, hitables);
             }
             c /= (float)img.samples;
@@ -440,38 +423,12 @@ void render(scene_manager& scene, const camera& cam, const image& img, const opt
     }
 }
 
-void dump(const quadnode& node)
-{
-    cout << setw(node.get_depth() - 1) << "*" << " "
-        << node.get_volume().center() << ", " << node.get_volume().extent();
-
-    if (node.is_leaf()) {
-        cout << "\n" << setw(node.get_depth());
-        for (auto it = node.objects_begin(); it != node.objects_end(); ++it) {
-            cout << " " << (*it)->id();
-        }
-    }
-    cout << "\n";
-}
-
-int get_object_count(const quadnode& root)
-{
-    unordered_set<void*> objects;
-    root.visit([&](const quadnode& node) {
-        for (auto it = node.objects_begin(); it != node.objects_end(); ++it) {
-            objects.insert(*it);
-        }
-    });
-    return (int)objects.size();
-}
-
 int main(int argc, char* argv[])
 {
     perlin::init();
     
     image img;
     options opts;
-    bool use_quadtree;
     
     po::options_description desc;
     desc.add_options()
@@ -480,7 +437,6 @@ int main(int argc, char* argv[])
         ("width", po::value<int>(&img.width)->default_value(300), "image width")
         ("height", po::value<int>(&img.height)->default_value(200), "image height")
         ("sample", po::value<int>(&img.samples)->default_value(100), "samples per pixel")
-        ("quadtree", po::bool_switch(&use_quadtree)->default_value(false), "use quadtree for spatial partitioning")
         (",p", po::bool_switch(&opts.report_progress)->default_value(true), "report rendering progress")
         ("output,o", po::value<string>(&opts.output)->default_value("output.ppm"), "output ppm name")
     ;
@@ -508,17 +464,17 @@ int main(int argc, char* argv[])
     aperture = 0;
     dist_to_focus = 1;
     
-    scene = simple_scene(use_quadtree);
+    scene = simple_scene();
 #else
     pos = vec3(478, 278, -600);
     lookat = vec3(278, 278, 0);
     aperture = 0.0f;
     dist_to_focus = 10.0f;
     
-    //scene = oneweekend_final_scene(use_quadtree);
+    //scene = oneweekend_final_scene();
+    scene = nextweek_final_scene();
 #endif
 
-    scene = nextweekend_final_scene();
     scene->build_scene();
     
     camera cam(pos, lookat, vec3::up,

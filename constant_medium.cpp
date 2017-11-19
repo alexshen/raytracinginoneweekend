@@ -5,7 +5,7 @@
 #include <cmath>
 using namespace std;
 
-bool constant_medium::hit(const ray& r, float tmin, float tmax, hit_record& rec) const
+bool constant_medium::hit(const ray3& r, float tmin, float tmax, hit_record& rec) const
 {
     hit_record rec1, rec2;
     if (m_boundary->hit(r, -FLT_MAX, FLT_MAX, rec1) &&

@@ -13,11 +13,11 @@ public:
         : m_albedo(std::move(tex))
     { }
 
-    bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation,
-                 ray& scattered) const override
+    bool scatter(const ray3& r_in, const hit_record& rec, vec3& attenuation,
+                 ray3& scattered) const override
     {
         attenuation = m_albedo->value(rec.u, rec.v, rec.p);
-        scattered = ray(rec.p, random_in_unit_sphere(), r_in.time);
+        scattered = ray3(rec.p, random_in_unit_sphere(), r_in.time);
         return true;
     }
 private:

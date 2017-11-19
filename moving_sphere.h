@@ -11,8 +11,8 @@ public:
     moving_sphere() = default;
     moving_sphere(const vec3& center0, const vec3& center1, float time0, float time1, float radius, material_ptr mat);
     
-    bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override;
-    aabb get_aabb() const override;
+    bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override;
+    aabb3 get_aabb() const override;
     
     vec3 center0;
     vec3 center1;

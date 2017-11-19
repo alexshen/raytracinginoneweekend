@@ -25,7 +25,7 @@ public:
     float time;
 };
 
-using ray = basic_ray<vec3>;
 using ray2 = basic_ray<vec2>;
+using ray3 = basic_ray<vec3>;
 
 #endif // RAY_H

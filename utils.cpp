@@ -60,73 +60,13 @@ float fast_rand()
 #endif
 }
 
-void expand(aabb& volume, const sphere& s)
+void expand(aabb2& volume, const sphere& s)
 {
     volume.min.x() = std::min(volume.min.x(), s.center.x() - s.radius);
     volume.max.x() = std::max(volume.max.x(), s.center.x() + s.radius);
 
     volume.min.y() = std::min(volume.min.y(), s.center.z() - s.radius);
     volume.max.y() = std::max(volume.max.y(), s.center.z() + s.radius);
-}
-
-bool intersect(const ray2 & r, const aabb & volume)
-{
-    constexpr float epsilon = 1e-6f;
-
-    enum which_side : char { neg, pos, middle };
-
-    // fast ray box intersection, Graphic Gems I
-    char quadrant[2];
-    // the edges to test against intersection
-    float edges[2];
-    float t[2];
-    bool inside = true;
-
-    // for each axis, find candidate edges
-    for (int i = 0; i < 2; ++i) {
-        if (r.origin[i] < volume.min[i]) {
-            quadrant[i] = neg;
-            edges[i] = volume.min[i];
-            inside = false;
-        } else if (r.origin[i] > volume.max[i]) {
-            quadrant[i] = pos;
-            edges[i] = volume.max[i];
-            inside = false;
-        } else {
-            quadrant[i] = middle;
-        }
-    }
-
-    // origin is outside of the bounding volume, check intersection
-    if (!inside) {
-        for (int i = 0; i < 2; ++i) {
-            if (quadrant[i] != middle && std::abs(r.dir[i]) > epsilon) {
-                t[i] = (edges[i] - r.origin[i]) / r.dir[i];
-            } else {
-                // no intersection;
-                t[i] = -1.0f;
-            }
-        }
-
-        // find the intersection axis
-        int axis = 0;
-        if (t[0] < t[1]) {
-            axis = 1;
-        }
-
-        if (t[axis] < 0) {
-            return false;
-        }
-
-        // check if the intersection point is actually valid on another axis
-        int check_axis = 1 - axis;
-        float coord = r.origin[check_axis] + t[axis] * r.dir[check_axis];
-        if (coord <= volume.min[check_axis] || coord >= volume.max[check_axis]) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 static vec2 compute_sphere_uv(const vec3& p)
@@ -139,7 +79,7 @@ static vec2 compute_sphere_uv(const vec3& p)
     return vec2(u, v);
 }
 
-static hit_record compute_sphere_hit(const vec3& center, float radius, const ray& r, float t)
+static hit_record compute_sphere_hit(const vec3& center, float radius, const ray3& r, float t)
 {
     hit_record rec;
     rec.t = t;
@@ -151,7 +91,7 @@ static hit_record compute_sphere_hit(const vec3& center, float radius, const ray
     return rec;
 }
 
-bool sphere_hit(const vec3& center, float radius, const ray& r, float tmin, float tmax, hit_record& rec)
+bool sphere_hit(const vec3& center, float radius, const ray3& r, float tmin, float tmax, hit_record& rec)
 {
     vec3 oc = r.origin - center;
     float a = dot(r.dir, r.dir);

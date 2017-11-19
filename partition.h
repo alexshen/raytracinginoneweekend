@@ -10,7 +10,7 @@ class spatial_partition
 {
 public:
     virtual ~spatial_partition() = default;
-    virtual void raycast(const ray2& r, std::vector<object*>& objs) const = 0;
+    virtual void raycast(const ray3& r, std::vector<object*>& objs) const = 0;
 };
 
 #endif // PARTITION_H

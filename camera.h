@@ -11,7 +11,7 @@ public:
     camera(const vec3& pos, const vec3& lookat, const vec3& up, float fov, float aspect,
            float aperture, float focus_distance, float time0, float time1);
 
-    ray get_ray(float u, float v) const;
+    ray3 get_ray(float u, float v) const;
 
     vec3 origin;
     vec3 lower_left;

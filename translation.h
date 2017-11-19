@@ -16,10 +16,10 @@ public:
     {
     }
 
-    bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const override
+    bool hit(const ray3& r, float tmin, float tmax, hit_record& rec) const override
     {
         // convert to local space
-        ray lr(r.origin - m_offset, r.dir, r.time);
+        ray3 lr(r.origin - m_offset, r.dir, r.time);
         if (m_object->hit(lr, tmin, tmax, rec)) {
             // convert to world space
             rec.p += m_offset;
@@ -28,10 +28,10 @@ public:
         return false;
     }
 
-    aabb get_aabb() const override
+    aabb3 get_aabb() const override
     {
         auto volume = m_object->get_aabb();
-        volume.translate(xz(m_offset));
+        volume.translate(m_offset);
         return volume;
     }
 private:
